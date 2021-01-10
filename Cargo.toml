@@ -1,0 +1,14 @@
+# Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
+
+[package]
+name = "gl_core"
+version = "0.1.0-alpha"
+authors = ["JoseCarlosSkar <josecarlosskar@gmail.com>"]
+edition = "2018"
+license = "MIT"
+description = "Um tempo de execução para a linguagem de script GLanguage"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.37"
