@@ -30,4 +30,8 @@ impl AbstractSyntaxTree {
 			statements: Vec::new(),
 		}
 	}
+
+	pub fn push(&mut self, statement: Statement) {
+		self.statements.push(statement);
+	}
 }
