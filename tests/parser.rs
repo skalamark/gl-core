@@ -1,6 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 extern crate gl_core;
+extern crate num;
 
 use gl_core::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
 use gl_core::error::AnyError;
@@ -68,7 +69,7 @@ fn run_digits() {
 		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
 
 		ast.push(Statement::Expression(Expression::Literal(
-			Literal::Integer(1234567890),
+			Literal::Integer(num::BigInt::parse_bytes(b"1234567890", 10).unwrap()),
 		)));
 
 		ast
