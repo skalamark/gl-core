@@ -1,5 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Position {
 	pub column: usize,
 	pub line: usize,
