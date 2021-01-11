@@ -14,7 +14,9 @@ pub enum Expression {
 	Null,
 }
 
-pub enum Literal {}
+pub enum Literal {
+	Integer(i32),
+}
 
 impl AbstractSyntaxTree {
 	pub fn new() -> Self {
