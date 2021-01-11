@@ -2,16 +2,19 @@
 
 use crate::position::Position;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Token {
 	pub typer: TokenType,
 	pub position: TokenPosition,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct TokenPosition {
 	pub start: Position,
 	pub end: Position,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
 	EOF, // \0
 }
