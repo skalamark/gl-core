@@ -12,6 +12,7 @@ pub enum Statement {
 
 pub enum Expression {
 	Null,
+	Literal(Literal),
 }
 
 pub enum Literal {
