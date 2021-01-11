@@ -12,3 +12,4 @@ description = "Um tempo de execução para a linguagem de script GLanguage"
 
 [dependencies]
 anyhow = "1.0.37"
+num = "0.3.1"
