@@ -17,6 +17,7 @@ pub struct TokenPosition {
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
 	EOF, // \0
+	INTEGER(String),
 }
 
 impl Token {
