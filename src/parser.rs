@@ -1,6 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::ast::AbstractSyntaxTree;
+use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
 use crate::error::{AnyError, Error};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
@@ -26,12 +26,44 @@ impl Parser {
 		}
 	}
 
+	fn parse_integer(
+		&mut self, integer_literal: String, module: &String, program: &mut ProgramState,
+	) -> Result<Literal, AnyError> {
+		Ok(Literal::Integer(integer_literal.parse().unwrap()))
+	}
+
+	fn parse_expression(
+		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
+	) -> Result<Expression, AnyError> {
+		let expression: Expression = match self.ctoken.typer.clone() {
+			t if t.is_eof() => return Err(Error::invalid_syntax(format!("invalid token"))),
+			TokenType::INTEGER(integer_literal) => {
+				self.next();
+				match self.parse_integer(integer_literal, module, program) {
+					Ok(integer_literal) => Expression::Literal(integer_literal),
+					Err(exception) => return Err(exception),
+				}
+			}
+
+			_ => return Err(Error::invalid_syntax(format!("invalid token"))),
+		};
+
+		Ok(expression)
+	}
+
 	fn parse_statement(
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
 	) -> Result<(), AnyError> {
 		match &self.ctoken.typer {
 			t if t.is_eof() => {}
-			_ => return Err(Error::invalid_syntax(format!("invalid token"))),
+
+			_ => {
+				let expression: Expression = match self.parse_expression(ast, module, program) {
+					Ok(expression) => expression,
+					Err(exception) => return Err(exception),
+				};
+				ast.push(Statement::Expression(expression));
+			}
 		}
 
 		Ok(())
