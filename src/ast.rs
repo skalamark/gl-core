@@ -14,6 +14,8 @@ pub enum Expression {
 	Null,
 }
 
+pub enum Literal {}
+
 impl AbstractSyntaxTree {
 	pub fn new() -> Self {
 		Self {
