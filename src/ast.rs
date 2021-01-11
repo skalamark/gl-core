@@ -1,5 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
+use num::BigInt;
+
 #[derive(Debug, PartialEq)]
 pub struct AbstractSyntaxTree {
 	pub statements: Vec<Statement>,
@@ -21,7 +23,7 @@ pub enum Expression {
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-	Integer(i32),
+	Integer(BigInt),
 }
 
 impl AbstractSyntaxTree {
