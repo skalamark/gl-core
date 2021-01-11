@@ -4,6 +4,7 @@ use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
 use crate::error::{AnyError, Error};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
+use num::BigInt;
 
 pub struct Parser {
 	ctoken: Token,
@@ -29,7 +30,9 @@ impl Parser {
 	fn parse_integer(
 		&mut self, integer_literal: String, module: &String, program: &mut ProgramState,
 	) -> Result<Literal, AnyError> {
-		Ok(Literal::Integer(integer_literal.parse().unwrap()))
+		Ok(Literal::Integer(
+			BigInt::parse_bytes(integer_literal.as_bytes(), 10).unwrap(),
+		))
 	}
 
 	fn parse_expression(
