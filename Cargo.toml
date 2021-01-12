@@ -6,7 +6,7 @@ version = "0.1.0-alpha"
 authors = ["JoseCarlosSkar <josecarlosskar@gmail.com>"]
 edition = "2018"
 license = "MIT"
-description = "Um tempo de execução para a linguagem de script GLanguage"
+description = "Um core para interpretação da linguagem de script GLanguage"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
