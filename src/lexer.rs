@@ -1,6 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::error::{AnyError, Error};
+use crate::error::{AnyError, Error, Exception};
 use crate::position::Position;
 use crate::state::ProgramState;
 use crate::token::Token;
@@ -53,6 +53,10 @@ impl Lexer {
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
 	) -> Result<(), AnyError> {
 		while self.cchar != '\0' && self.cchar.is_whitespace() {
+			if self.cchar == '\n' {
+				self.position.line += 1;
+				self.position.column = 0;
+			}
 			self.next()
 		}
 
@@ -62,7 +66,7 @@ impl Lexer {
 	fn lexe_token(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
 	) -> Result<(), AnyError> {
-		if self.chars.len() == 0 {
+		if self.chars.len() == 0 && self.cchar == '\0' {
 			self.next();
 			tokens.push(Token::new(
 				crate::token::TokenType::EOF,
@@ -80,7 +84,13 @@ impl Lexer {
 				Ok(_) => {}
 				Err(exception) => return Err(exception),
 			},
-			_ => return Err(Error::invalid_syntax(format!("invalid token"))),
+			_ => {
+				return Err(Exception::new(
+					module.clone(),
+					self.position.copy(),
+					Error::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
+				));
+			}
 		}
 
 		Ok(())
