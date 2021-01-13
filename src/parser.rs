@@ -1,7 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
-use crate::error::{AnyError, Error};
+use crate::error::{AnyError, Error, Exception};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
 use num::BigInt;
@@ -39,7 +39,13 @@ impl Parser {
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
 	) -> Result<Expression, AnyError> {
 		let expression: Expression = match self.ctoken.typer.clone() {
-			t if t.is_eof() => return Err(Error::invalid_syntax(format!("invalid token"))),
+			t if t.is_eof() => {
+				return Err(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+					Error::unexpected_eof(format!("unexpected EOF while parsing")),
+				));
+			}
 			TokenType::INTEGER(integer_literal) => {
 				self.next();
 				match self.parse_integer(integer_literal, module, program) {
@@ -48,7 +54,13 @@ impl Parser {
 				}
 			}
 
-			_ => return Err(Error::invalid_syntax(format!("invalid token"))),
+			_ => {
+				return Err(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+					Error::invalid_syntax(format!("invalid token")),
+				));
+			}
 		};
 
 		Ok(expression)
