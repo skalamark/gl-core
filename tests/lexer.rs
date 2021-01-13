@@ -39,7 +39,7 @@ fn run_whitespaces() {
 
 	let expected_tokens: Vec<Token> = vec![Token::new(
 		gl_core::token::TokenType::EOF,
-		TokenPosition::new(Position::new(7, 0), Position::new(7, 0)),
+		TokenPosition::new(Position::new(2, 1), Position::new(2, 1)),
 	)];
 	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
 
