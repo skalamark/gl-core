@@ -16,6 +16,7 @@ pub struct Exception {
 pub enum ExceptionType {
 	UnexpectedEOF,
 	InvalidSyntax,
+	Name,
 }
 
 #[derive(Debug)]
@@ -42,6 +43,7 @@ impl std::fmt::Display for ExceptionType {
 		match self {
 			ExceptionType::UnexpectedEOF => write!(f, "UnexpectedEOF"),
 			ExceptionType::InvalidSyntax => write!(f, "InvalidSyntax"),
+			ExceptionType::Name => write!(f, "NameError"),
 		}
 	}
 }
@@ -76,5 +78,9 @@ impl Error {
 
 	pub fn invalid_syntax(message: String) -> Self {
 		Self::custom(ExceptionType::InvalidSyntax, message)
+	}
+
+	pub fn name(message: String) -> Self {
+		Self::custom(ExceptionType::Name, message)
 	}
 }
