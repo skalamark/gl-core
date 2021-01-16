@@ -2,28 +2,32 @@
 
 use num::BigInt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AbstractSyntaxTree {
 	pub statements: Vec<Statement>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Block(Vec<Statement>);
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
+	Let(String, Expression),
 	Expression(Expression),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expression {
-	Null,
+	Identifier(String),
 	Literal(Literal),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
+	Null,
 	Integer(BigInt),
+	Boolean(bool),
+	String(String),
 }
 
 impl AbstractSyntaxTree {
