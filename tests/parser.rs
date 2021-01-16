@@ -20,7 +20,7 @@ fn run_empty() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("");
-	let module: String = format!("crate");
+	let module: String = format!("tests/parser/empty");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
@@ -35,18 +35,24 @@ fn run_empty() {
 }
 
 #[test]
-fn run_whitespaces() {
+fn run_null() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
-	let source: String = format!("  	\r\n\t ");
-	let module: String = format!("crate");
+	let source: String = format!("null");
+	let module: String = format!("tests/lexer/null");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
-	let expected_ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Expression(Expression::Literal(Literal::Null)));
+
+		ast
+	};
 	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
@@ -54,11 +60,11 @@ fn run_whitespaces() {
 }
 
 #[test]
-fn run_digits() {
+fn run_integer() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("1234567890");
-	let module: String = format!("crate");
+	let module: String = format!("tests/lexer/integer");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
@@ -71,6 +77,93 @@ fn run_digits() {
 		ast.push(Statement::Expression(Expression::Literal(
 			Literal::Integer(num::BigInt::parse_bytes(b"1234567890", 10).unwrap()),
 		)));
+
+		ast
+	};
+	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap())
+}
+
+#[test]
+fn run_boolean() {
+	let mut lexer: Lexer = Lexer::new();
+	let mut parser: Parser = Parser::new();
+	let source: String = format!("true;false");
+	let module: String = format!("tests/lexer/boolean");
+	let mut program: ProgramState = ProgramState::new();
+
+	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	assert_eq!(false, rtokens.is_err());
+	let tokens: Vec<Token> = rtokens.unwrap();
+
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Expression(Expression::Literal(
+			Literal::Boolean(true),
+		)));
+		ast.push(Statement::Expression(Expression::Literal(
+			Literal::Boolean(false),
+		)));
+
+		ast
+	};
+	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap())
+}
+
+#[test]
+fn run_string() {
+	let mut lexer: Lexer = Lexer::new();
+	let mut parser: Parser = Parser::new();
+	let source: String = format!("\"text\"");
+	let module: String = format!("tests/lexer/string");
+	let mut program: ProgramState = ProgramState::new();
+
+	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	assert_eq!(false, rtokens.is_err());
+	let tokens: Vec<Token> = rtokens.unwrap();
+
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Expression(Expression::Literal(Literal::String(
+			format!("text"),
+		))));
+
+		ast
+	};
+	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap())
+}
+
+#[test]
+fn run_let() {
+	let mut lexer: Lexer = Lexer::new();
+	let mut parser: Parser = Parser::new();
+	let source: String = format!("let universo = 42");
+	let module: String = format!("tests/lexer/let");
+	let mut program: ProgramState = ProgramState::new();
+
+	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	assert_eq!(false, rtokens.is_err());
+	let tokens: Vec<Token> = rtokens.unwrap();
+
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Let(
+			format!("universo"),
+			Expression::Literal(Literal::Integer(
+				num::BigInt::parse_bytes(b"42", 10).unwrap(),
+			)),
+		));
 
 		ast
 	};
