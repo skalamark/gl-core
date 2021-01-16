@@ -16,8 +16,44 @@ pub struct TokenPosition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
-	EOF, // \0
+	EOF,     // \0
+	NEWLINE, // \n
+
+	// identifier and literals
+	IDENTIFIER(String),
+	NULL,
 	INTEGER(String),
+	BOOLEAN(bool),
+	STRING(String),
+
+	// keywords
+	LET,
+
+	// operators
+	PLUS,             // +
+	MINUS,            // -
+	MULTIPLY,         // *
+	DIVIDE,           // /
+	EQUAL,            // ==
+	NotEqual,         // !=
+	ASSIGN,           // =
+	NOT,              // !
+	LessThan,         // <
+	GreaterThan,      // >
+	LessThanEqual,    // <=
+	GreaterThanEqual, // >=
+
+	// punctuations
+	DOT,       // .
+	COMMA,     // ,
+	SEMICOLON, // ;
+	COLON,     // :
+	LParen,    // (
+	RParen,    // )
+	LBracket,  // [
+	RBracket,  // ]
+	LBrace,    // {
+	RBrace,    // }
 }
 
 impl Token {
