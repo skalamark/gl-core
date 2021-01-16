@@ -1,6 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 pub mod ast;
+pub mod builtins;
 pub mod env;
 pub mod error;
 pub mod lexer;
