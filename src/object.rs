@@ -24,7 +24,7 @@ impl std::fmt::Display for Object {
 			Object::Null => write!(f, "null"),
 			Object::Integer(integer) => write!(f, "{}", integer),
 			Object::Boolean(boolean) => write!(f, "{}", boolean),
-			Object::String(string) => write!(f, "{}", string),
+			Object::String(string) => write!(f, "{:?}", string),
 			Object::Vec(vector) => {
 				let mut fmt_string: String = String::new();
 				fmt_string.push('[');

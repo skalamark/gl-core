@@ -1,6 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
+use crate::ast::{AbstractSyntaxTree, Expression, Infix, Literal, Precedence, Prefix, Statement};
 use crate::error::{Exception, ExceptionError, ExceptionMain};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
@@ -40,6 +40,56 @@ impl Parser {
 		}
 	}
 
+	fn parse_infix(
+		&mut self, left: Expression, module: &String, program: &mut ProgramState,
+	) -> Result<Expression, ExceptionMain> {
+		let mut infix: Infix = Infix::Plus;
+
+		match &self.ctoken.typer {
+			TokenType::PLUS => infix = Infix::Plus,
+			TokenType::MINUS => infix = Infix::Minus,
+			TokenType::MULTIPLY => infix = Infix::Multiply,
+			TokenType::DIVIDE => infix = Infix::Divide,
+			TokenType::EQUAL => infix = Infix::Equal,
+			TokenType::NotEqual => infix = Infix::NotEqual,
+			TokenType::LessThan => infix = Infix::LessThan,
+			TokenType::LessThanEqual => infix = Infix::LessThanEqual,
+			TokenType::GreaterThan => infix = Infix::GreaterThan,
+			TokenType::GreaterThanEqual => infix = Infix::GreaterThanEqual,
+			_ => {}
+		};
+		let precedence: Precedence = Precedence::from_token(&self.ctoken);
+		self.next(true);
+
+		match self.parse_expression(precedence, module, program) {
+			Ok(expression) => Ok(Expression::Infix(
+				infix,
+				Box::new(left),
+				Box::new(expression),
+			)),
+			Err(exception) => return Err(exception),
+		}
+	}
+
+	fn parse_prefix(
+		&mut self, module: &String, program: &mut ProgramState,
+	) -> Result<Expression, ExceptionMain> {
+		let mut prefix: Prefix = Prefix::Not;
+
+		match &self.ctoken.typer {
+			TokenType::NOT => prefix = Prefix::Not,
+			TokenType::PLUS => prefix = Prefix::Plus,
+			TokenType::MINUS => prefix = Prefix::Minus,
+			_ => {}
+		};
+		self.next(true);
+
+		match self.parse_expression(Precedence::Prefix, module, program) {
+			Ok(expression) => Ok(Expression::Prefix(prefix, Box::new(expression))),
+			Err(exception) => return Err(exception),
+		}
+	}
+
 	fn parse_hashmap(
 		&mut self, module: &String, program: &mut ProgramState,
 	) -> Result<Literal, ExceptionMain> {
@@ -47,7 +97,7 @@ impl Parser {
 		let mut list: Vec<(Expression, Expression)> = Vec::new();
 
 		while self.ctoken.typer != TokenType::RBrace {
-			let key: Expression = match self.parse_expression(module, program) {
+			let key: Expression = match self.parse_expression(Precedence::Lowest, module, program) {
 				Ok(key) => key,
 				Err(exception) => return Err(exception),
 			};
@@ -65,7 +115,8 @@ impl Parser {
 			}
 			self.next(true);
 
-			let value: Expression = match self.parse_expression(module, program) {
+			let value: Expression = match self.parse_expression(Precedence::Lowest, module, program)
+			{
 				Ok(value) => value,
 				Err(exception) => return Err(exception),
 			};
@@ -101,10 +152,11 @@ impl Parser {
 		let mut list: Vec<Expression> = Vec::new();
 
 		while self.ctoken.typer != TokenType::RBracket {
-			let expression: Expression = match self.parse_expression(module, program) {
-				Ok(expression) => expression,
-				Err(exception) => return Err(exception),
-			};
+			let expression: Expression =
+				match self.parse_expression(Precedence::Lowest, module, program) {
+					Ok(expression) => expression,
+					Err(exception) => return Err(exception),
+				};
 			list.push(expression);
 			self.next_while_newline();
 
@@ -138,10 +190,10 @@ impl Parser {
 	}
 
 	fn parse_expression(
-		&mut self, module: &String, program: &mut ProgramState,
+		&mut self, precedence: Precedence, module: &String, program: &mut ProgramState,
 	) -> Result<Expression, ExceptionMain> {
 		// prefix
-		let left: Expression = match self.ctoken.typer.clone() {
+		let mut left: Expression = match self.ctoken.typer.clone() {
 			t if t.is_eof() => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::unexpected_eof(format!("unexpected EOF while parsing")),
@@ -184,6 +236,12 @@ impl Parser {
 				Ok(hashmap_literal) => Expression::Literal(hashmap_literal),
 				Err(exception) => return Err(exception),
 			},
+			TokenType::NOT | TokenType::PLUS | TokenType::MINUS => {
+				match self.parse_prefix(module, program) {
+					Ok(expression) => expression,
+					Err(exception) => return Err(exception),
+				}
+			}
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("invalid token")),
@@ -196,6 +254,28 @@ impl Parser {
 				return Err(exception);
 			}
 		};
+
+		// infix
+		while precedence < Precedence::from_token(&self.ctoken) {
+			match &self.ctoken.typer {
+				TokenType::PLUS
+				| TokenType::MINUS
+				| TokenType::MULTIPLY
+				| TokenType::DIVIDE
+				| TokenType::EQUAL
+				| TokenType::NotEqual
+				| TokenType::LessThan
+				| TokenType::LessThanEqual
+				| TokenType::GreaterThan
+				| TokenType::GreaterThanEqual => {
+					left = match self.parse_infix(left, module, program) {
+						Ok(expression) => expression,
+						Err(exception) => return Err(exception),
+					};
+				}
+				_ => return Ok(left),
+			}
+		}
 
 		Ok(left)
 	}
@@ -237,7 +317,7 @@ impl Parser {
 		}
 		self.next(true);
 
-		let value: Expression = match self.parse_expression(module, program) {
+		let value: Expression = match self.parse_expression(Precedence::Lowest, module, program) {
 			Ok(expression) => expression,
 			Err(exception) => return Err(exception),
 		};
@@ -257,10 +337,11 @@ impl Parser {
 				Err(exception) => return Err(exception),
 			},
 			_ => {
-				let expression: Expression = match self.parse_expression(module, program) {
-					Ok(expression) => expression,
-					Err(exception) => return Err(exception),
-				};
+				let expression: Expression =
+					match self.parse_expression(Precedence::Lowest, module, program) {
+						Ok(expression) => expression,
+						Err(exception) => return Err(exception),
+					};
 				ast.push(Statement::Expression(expression));
 			}
 		}
