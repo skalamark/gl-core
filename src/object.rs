@@ -1,11 +1,12 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::error::AnyError;
+use crate::error::ExceptionMain;
+use crate::position::Position;
 use num::BigInt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
-pub type BuiltinFn = fn(Vec<Object>) -> Result<Object, AnyError>;
+pub type BuiltinFn = fn(Vec<Object>, String, Position) -> Result<Object, ExceptionMain>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
