@@ -11,5 +11,5 @@ description = "Um core para interpretação da linguagem de script GLanguage"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.37"
+anyhow = "1.0.38"
 num = "0.3.1"
