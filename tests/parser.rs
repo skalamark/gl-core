@@ -4,7 +4,7 @@ extern crate gl_core;
 extern crate num;
 
 use gl_core::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
-use gl_core::error::AnyError;
+use gl_core::error::ExceptionMain;
 use gl_core::lexer::Lexer;
 use gl_core::parser::Parser;
 use gl_core::state::ProgramState;
@@ -23,12 +23,12 @@ fn run_empty() {
 	let module: String = format!("tests/parser/empty");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
 	let expected_ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())
@@ -42,7 +42,7 @@ fn run_null() {
 	let module: String = format!("tests/lexer/null");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
@@ -53,7 +53,7 @@ fn run_null() {
 
 		ast
 	};
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())
@@ -67,7 +67,7 @@ fn run_integer() {
 	let module: String = format!("tests/lexer/integer");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
@@ -80,7 +80,7 @@ fn run_integer() {
 
 		ast
 	};
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())
@@ -94,7 +94,7 @@ fn run_boolean() {
 	let module: String = format!("tests/lexer/boolean");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
@@ -110,7 +110,7 @@ fn run_boolean() {
 
 		ast
 	};
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())
@@ -124,7 +124,7 @@ fn run_string() {
 	let module: String = format!("tests/lexer/string");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
@@ -137,7 +137,7 @@ fn run_string() {
 
 		ast
 	};
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())
@@ -151,7 +151,7 @@ fn run_let() {
 	let module: String = format!("tests/lexer/let");
 	let mut program: ProgramState = ProgramState::new();
 
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 	assert_eq!(false, rtokens.is_err());
 	let tokens: Vec<Token> = rtokens.unwrap();
 
@@ -167,7 +167,7 @@ fn run_let() {
 
 		ast
 	};
-	let rast: Result<AbstractSyntaxTree, AnyError> = parser.run(tokens, &module, &mut program);
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
 
 	assert_eq!(false, rast.is_err());
 	assert_eq!(expected_ast, rast.unwrap())

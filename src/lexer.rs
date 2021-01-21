@@ -1,10 +1,12 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::error::{AnyError, Error, Exception};
+use crate::error::{AnyError, Exception, ExceptionError, ExceptionMain};
 use crate::position::Position;
 use crate::state::ProgramState;
 use crate::token::Token;
 use crate::token::TokenPosition;
+
+type ResultLexer = Result<(), ExceptionMain>;
 
 pub struct Lexer {
 	cchar: char,
@@ -37,7 +39,7 @@ impl Lexer {
 
 	fn lexe_string(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		let mut string_literal: String = String::new();
 		let position_start: Position = self.position.copy();
 		self.next();
@@ -48,11 +50,12 @@ impl Lexer {
 		}
 
 		if self.cchar != '"' {
-			return Err(Exception::new(
-				module.clone(),
-				self.position.copy(),
-				Error::unexpected_eof(format!("EOL while scanning string literal")),
-			));
+			let mut exception = ExceptionMain::new(
+				ExceptionError::unexpected_eof(format!("EOL while scanning string literal")),
+				false,
+			);
+			exception.push(Exception::new(module.clone(), self.position.copy()));
+			return Err(exception);
 		}
 		self.next();
 
@@ -66,7 +69,7 @@ impl Lexer {
 
 	fn lexe_identifier_keyword(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		let mut identifier_literal: String = String::new();
 		let position_start: Position = self.position.copy();
 
@@ -112,7 +115,7 @@ impl Lexer {
 
 	fn lexe_digits(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		let mut digits_literal: String = String::new();
 		let position_start: Position = self.position.copy();
 
@@ -131,7 +134,7 @@ impl Lexer {
 
 	fn lexe_punctuations(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		let position_start: Position = self.position.copy();
 
 		match self.cchar {
@@ -297,11 +300,12 @@ impl Lexer {
 				));
 			}
 			_ => {
-				return Err(Exception::new(
-					module.clone(),
-					self.position.copy(),
-					Error::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
-				));
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
+					false,
+				);
+				exception.push(Exception::new(module.clone(), self.position.copy()));
+				return Err(exception);
 			}
 		}
 
@@ -310,7 +314,7 @@ impl Lexer {
 
 	fn lexe_whitespace(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		let mut position_start: Position = self.position.copy();
 
 		while self.cchar != '\0' && self.cchar.is_whitespace() {
@@ -334,7 +338,7 @@ impl Lexer {
 
 	fn lexe_token(
 		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> ResultLexer {
 		if self.chars.len() == 0 && self.cchar == '\0' {
 			self.next();
 			tokens.push(Token::new(
@@ -365,11 +369,12 @@ impl Lexer {
 				Err(exception) => return Err(exception),
 			},
 			_ => {
-				return Err(Exception::new(
-					module.clone(),
-					self.position.copy(),
-					Error::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
-				));
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
+					false,
+				);
+				exception.push(Exception::new(module.clone(), self.position.copy()));
+				return Err(exception);
 			}
 		}
 
@@ -378,7 +383,7 @@ impl Lexer {
 
 	pub fn run(
 		&mut self, source: String, module: &String, program: &mut ProgramState,
-	) -> Result<Vec<Token>, AnyError> {
+	) -> Result<Vec<Token>, ExceptionMain> {
 		self.chars = source.chars().collect();
 		let mut tokens: Vec<Token> = Vec::new();
 		self.next();

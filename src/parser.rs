@@ -1,7 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
-use crate::error::{AnyError, Error, Exception};
+use crate::error::{AnyError, Exception, ExceptionError, ExceptionMain};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
 use num::BigInt;
@@ -42,7 +42,7 @@ impl Parser {
 
 	fn parse_integer(
 		&mut self, integer_literal: String, module: &String, program: &mut ProgramState,
-	) -> Result<Literal, AnyError> {
+	) -> Result<Literal, ExceptionMain> {
 		Ok(Literal::Integer(
 			BigInt::parse_bytes(integer_literal.as_bytes(), 10).unwrap(),
 		))
@@ -50,14 +50,18 @@ impl Parser {
 
 	fn parse_expression(
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
-	) -> Result<Expression, AnyError> {
+	) -> Result<Expression, ExceptionMain> {
 		let expression: Expression = match self.ctoken.typer.clone() {
 			t if t.is_eof() => {
-				return Err(Exception::new(
+				let mut exception = ExceptionMain::new(
+					ExceptionError::unexpected_eof(format!("unexpected EOF while parsing")),
+					false,
+				);
+				exception.push(Exception::new(
 					module.clone(),
 					self.ctoken.position.start.copy(),
-					Error::unexpected_eof(format!("unexpected EOF while parsing")),
 				));
+				return Err(exception);
 			}
 			TokenType::IDENTIFIER(identifier) => {
 				self.next(false);
@@ -83,11 +87,15 @@ impl Parser {
 				Expression::Literal(Literal::String(string_literal))
 			}
 			_ => {
-				return Err(Exception::new(
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("invalid token")),
+					false,
+				);
+				exception.push(Exception::new(
 					module.clone(),
 					self.ctoken.position.start.copy(),
-					Error::invalid_syntax(format!("invalid token")),
 				));
+				return Err(exception);
 			}
 		};
 
@@ -96,17 +104,21 @@ impl Parser {
 
 	fn parse_let(
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
-	) -> Result<Statement, AnyError> {
+	) -> Result<Statement, ExceptionMain> {
 		self.next(true);
 
 		let name: String = match self.ctoken.typer.clone() {
 			TokenType::IDENTIFIER(name) => name,
 			_ => {
-				return Err(Exception::new(
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected identifier")),
+					false,
+				);
+				exception.push(Exception::new(
 					module.clone(),
 					self.ctoken.position.start.copy(),
-					Error::invalid_syntax(format!("expected identifier")),
 				));
+				return Err(exception);
 			}
 		};
 		self.next(true);
@@ -114,11 +126,15 @@ impl Parser {
 		match self.ctoken.typer.clone() {
 			TokenType::ASSIGN => {}
 			_ => {
-				return Err(Exception::new(
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected '='")),
+					false,
+				);
+				exception.push(Exception::new(
 					module.clone(),
 					self.ctoken.position.start.copy(),
-					Error::invalid_syntax(format!("expected '='")),
 				));
+				return Err(exception);
 			}
 		}
 		self.next(true);
@@ -133,7 +149,7 @@ impl Parser {
 
 	fn parse_statement(
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
-	) -> Result<(), AnyError> {
+	) -> Result<(), ExceptionMain> {
 		self.next_while_newline();
 
 		match &self.ctoken.typer {
@@ -160,11 +176,15 @@ impl Parser {
 				self.next(true);
 			}
 			_ => {
-				return Err(Exception::new(
+				let mut exception = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected ';', newline or eof")),
+					false,
+				);
+				exception.push(Exception::new(
 					module.clone(),
 					self.ctoken.position.start.copy(),
-					Error::invalid_syntax(format!("expected ';', newline or eof")),
-				))
+				));
+				return Err(exception);
 			}
 		}
 
@@ -173,7 +193,7 @@ impl Parser {
 
 	pub fn run(
 		&mut self, tokens: Vec<Token>, module: &String, program: &mut ProgramState,
-	) -> Result<AbstractSyntaxTree, AnyError> {
+	) -> Result<AbstractSyntaxTree, ExceptionMain> {
 		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
 		self.tokens = tokens;
 		self.next(true);

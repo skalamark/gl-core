@@ -2,7 +2,7 @@
 
 extern crate gl_core;
 
-use gl_core::error::AnyError;
+use gl_core::error::ExceptionMain;
 use gl_core::lexer::Lexer;
 use gl_core::position::Position;
 use gl_core::state::ProgramState;
@@ -24,7 +24,7 @@ fn run_empty() {
 		gl_core::token::TokenType::EOF,
 		TokenPosition::new(Position::new(0, 0), Position::new(0, 0)),
 	)];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -47,7 +47,7 @@ fn run_whitespaces() {
 			TokenPosition::new(Position::new(2, 1), Position::new(2, 1)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -70,7 +70,7 @@ fn run_identifier() {
 			TokenPosition::new(Position::new(10, 0), Position::new(10, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -93,7 +93,7 @@ fn run_integer() {
 			TokenPosition::new(Position::new(10, 0), Position::new(10, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -120,7 +120,7 @@ fn run_boolean() {
 			TokenPosition::new(Position::new(10, 0), Position::new(10, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -143,7 +143,7 @@ fn run_string() {
 			TokenPosition::new(Position::new(6, 0), Position::new(6, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -210,7 +210,7 @@ fn run_operators() {
 			TokenPosition::new(Position::new(16, 0), Position::new(16, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -269,7 +269,7 @@ fn run_punctuations() {
 			TokenPosition::new(Position::new(10, 0), Position::new(10, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
@@ -292,7 +292,7 @@ fn run_let() {
 			TokenPosition::new(Position::new(3, 0), Position::new(3, 0)),
 		),
 	];
-	let rtokens: Result<Vec<Token>, AnyError> = lexer.run(source, &module, &mut program);
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
 
 	assert_eq!(false, rtokens.is_err());
 	assert_eq!(expected_tokens, rtokens.unwrap())
