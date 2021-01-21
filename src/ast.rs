@@ -28,6 +28,7 @@ pub enum Literal {
 	Integer(BigInt),
 	Boolean(bool),
 	String(String),
+	Vec(Vec<Expression>),
 }
 
 impl AbstractSyntaxTree {

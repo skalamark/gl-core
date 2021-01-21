@@ -1,6 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::error::{AnyError, Exception, ExceptionError, ExceptionMain};
+use crate::error::{Exception, ExceptionError, ExceptionMain};
 use crate::position::Position;
 use crate::state::ProgramState;
 use crate::token::Token;
@@ -38,7 +38,7 @@ impl Lexer {
 	}
 
 	fn lexe_string(
-		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
+		&mut self, tokens: &mut Vec<Token>, module: &String, _: &mut ProgramState,
 	) -> ResultLexer {
 		let mut string_literal: String = String::new();
 		let position_start: Position = self.position.copy();
@@ -68,7 +68,7 @@ impl Lexer {
 	}
 
 	fn lexe_identifier_keyword(
-		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
+		&mut self, tokens: &mut Vec<Token>, _: &String, _: &mut ProgramState,
 	) -> ResultLexer {
 		let mut identifier_literal: String = String::new();
 		let position_start: Position = self.position.copy();
@@ -114,7 +114,7 @@ impl Lexer {
 	}
 
 	fn lexe_digits(
-		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
+		&mut self, tokens: &mut Vec<Token>, _: &String, _: &mut ProgramState,
 	) -> ResultLexer {
 		let mut digits_literal: String = String::new();
 		let position_start: Position = self.position.copy();
@@ -313,7 +313,7 @@ impl Lexer {
 	}
 
 	fn lexe_whitespace(
-		&mut self, tokens: &mut Vec<Token>, module: &String, program: &mut ProgramState,
+		&mut self, tokens: &mut Vec<Token>, _: &String, _: &mut ProgramState,
 	) -> ResultLexer {
 		let mut position_start: Position = self.position.copy();
 

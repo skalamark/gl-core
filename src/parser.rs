@@ -1,7 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 use crate::ast::{AbstractSyntaxTree, Expression, Literal, Statement};
-use crate::error::{AnyError, Exception, ExceptionError, ExceptionMain};
+use crate::error::{Exception, ExceptionError, ExceptionMain};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
 use num::BigInt;
@@ -40,8 +40,43 @@ impl Parser {
 		}
 	}
 
+	fn parse_vec(
+		&mut self, module: &String, program: &mut ProgramState,
+	) -> Result<Literal, ExceptionMain> {
+		self.next(true);
+		let mut list: Vec<Expression> = Vec::new();
+
+		while self.ctoken.typer != TokenType::RBracket {
+			let expression: Expression = match self.parse_expression(module, program) {
+				Ok(expression) => expression,
+				Err(exception) => return Err(exception),
+			};
+			list.push(expression);
+			self.next_while_newline();
+
+			match &self.ctoken.typer {
+				TokenType::COMMA => self.next(true),
+				TokenType::RBracket => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected ',' or ']'")),
+						false,
+					);
+					exception.push(Exception::new(
+						module.clone(),
+						self.ctoken.position.start.copy(),
+					));
+					return Err(exception);
+				}
+			}
+		}
+		self.next(false);
+
+		Ok(Literal::Vec(list))
+	}
+
 	fn parse_integer(
-		&mut self, integer_literal: String, module: &String, program: &mut ProgramState,
+		&mut self, integer_literal: String, _: &String, _: &mut ProgramState,
 	) -> Result<Literal, ExceptionMain> {
 		Ok(Literal::Integer(
 			BigInt::parse_bytes(integer_literal.as_bytes(), 10).unwrap(),
@@ -49,11 +84,12 @@ impl Parser {
 	}
 
 	fn parse_expression(
-		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
+		&mut self, module: &String, program: &mut ProgramState,
 	) -> Result<Expression, ExceptionMain> {
-		let expression: Expression = match self.ctoken.typer.clone() {
+		// prefix
+		let left: Expression = match self.ctoken.typer.clone() {
 			t if t.is_eof() => {
-				let mut exception = ExceptionMain::new(
+				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::unexpected_eof(format!("unexpected EOF while parsing")),
 					false,
 				);
@@ -86,8 +122,12 @@ impl Parser {
 				self.next(false);
 				Expression::Literal(Literal::String(string_literal))
 			}
+			TokenType::LBracket => match self.parse_vec(module, program) {
+				Ok(vec_literal) => Expression::Literal(vec_literal),
+				Err(exception) => return Err(exception),
+			},
 			_ => {
-				let mut exception = ExceptionMain::new(
+				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("invalid token")),
 					false,
 				);
@@ -99,18 +139,18 @@ impl Parser {
 			}
 		};
 
-		Ok(expression)
+		Ok(left)
 	}
 
 	fn parse_let(
-		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
+		&mut self, _: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
 	) -> Result<Statement, ExceptionMain> {
 		self.next(true);
 
 		let name: String = match self.ctoken.typer.clone() {
 			TokenType::IDENTIFIER(name) => name,
 			_ => {
-				let mut exception = ExceptionMain::new(
+				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected identifier")),
 					false,
 				);
@@ -126,7 +166,7 @@ impl Parser {
 		match self.ctoken.typer.clone() {
 			TokenType::ASSIGN => {}
 			_ => {
-				let mut exception = ExceptionMain::new(
+				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected '='")),
 					false,
 				);
@@ -139,7 +179,7 @@ impl Parser {
 		}
 		self.next(true);
 
-		let value: Expression = match self.parse_expression(ast, module, program) {
+		let value: Expression = match self.parse_expression(module, program) {
 			Ok(expression) => expression,
 			Err(exception) => return Err(exception),
 		};
@@ -159,7 +199,7 @@ impl Parser {
 				Err(exception) => return Err(exception),
 			},
 			_ => {
-				let expression: Expression = match self.parse_expression(ast, module, program) {
+				let expression: Expression = match self.parse_expression(module, program) {
 					Ok(expression) => expression,
 					Err(exception) => return Err(exception),
 				};
@@ -174,9 +214,15 @@ impl Parser {
 			}
 			TokenType::NEWLINE => {
 				self.next(true);
+				match &self.ctoken.typer {
+					TokenType::SEMICOLON => {
+						self.next(true);
+					}
+					_ => {}
+				}
 			}
 			_ => {
-				let mut exception = ExceptionMain::new(
+				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected ';', newline or eof")),
 					false,
 				);

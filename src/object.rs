@@ -1,7 +1,5 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::ast::Block;
-use crate::env::Env;
 use crate::error::AnyError;
 use num::BigInt;
 use std::collections::HashMap;
