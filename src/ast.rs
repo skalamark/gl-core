@@ -29,6 +29,7 @@ pub enum Literal {
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Expression>),
+	HashMap(Vec<(Expression, Expression)>),
 }
 
 impl AbstractSyntaxTree {

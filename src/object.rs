@@ -3,10 +3,11 @@
 use crate::error::AnyError;
 use num::BigInt;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 pub type BuiltinFn = fn(Vec<Object>) -> Result<Object, AnyError>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Object {
 	Null,
 	Integer(BigInt),
@@ -51,6 +52,19 @@ impl std::fmt::Display for Object {
 			Object::Builtin(_, _, _) => {
 				write!(f, "<built-in function>")
 			}
+		}
+	}
+}
+
+impl Eq for Object {}
+
+impl Hash for Object {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		match *self {
+			Object::Integer(ref i) => i.hash(state),
+			Object::Boolean(ref b) => b.hash(state),
+			Object::String(ref s) => s.hash(state),
+			_ => "".hash(state),
 		}
 	}
 }

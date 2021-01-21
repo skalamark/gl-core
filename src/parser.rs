@@ -40,6 +40,60 @@ impl Parser {
 		}
 	}
 
+	fn parse_hashmap(
+		&mut self, module: &String, program: &mut ProgramState,
+	) -> Result<Literal, ExceptionMain> {
+		self.next(true);
+		let mut list: Vec<(Expression, Expression)> = Vec::new();
+
+		while self.ctoken.typer != TokenType::RBrace {
+			let key: Expression = match self.parse_expression(module, program) {
+				Ok(key) => key,
+				Err(exception) => return Err(exception),
+			};
+
+			if self.ctoken.typer != TokenType::COLON {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected ':'")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+			self.next(true);
+
+			let value: Expression = match self.parse_expression(module, program) {
+				Ok(value) => value,
+				Err(exception) => return Err(exception),
+			};
+
+			list.push((key, value));
+			self.next_while_newline();
+
+			match &self.ctoken.typer {
+				TokenType::COMMA => self.next(true),
+				TokenType::RBrace => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected ',' or '}}'")),
+						false,
+					);
+					exception.push(Exception::new(
+						module.clone(),
+						self.ctoken.position.start.copy(),
+					));
+					return Err(exception);
+				}
+			}
+		}
+		self.next(false);
+
+		Ok(Literal::HashMap(list))
+	}
+
 	fn parse_vec(
 		&mut self, module: &String, program: &mut ProgramState,
 	) -> Result<Literal, ExceptionMain> {
@@ -124,6 +178,10 @@ impl Parser {
 			}
 			TokenType::LBracket => match self.parse_vec(module, program) {
 				Ok(vec_literal) => Expression::Literal(vec_literal),
+				Err(exception) => return Err(exception),
+			},
+			TokenType::LBrace => match self.parse_hashmap(module, program) {
+				Ok(hashmap_literal) => Expression::Literal(hashmap_literal),
 				Err(exception) => return Err(exception),
 			},
 			_ => {
