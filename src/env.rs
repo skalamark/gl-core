@@ -1,6 +1,5 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::builtins::BuiltinsFns;
 use crate::object::Object;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -14,19 +13,23 @@ pub struct Env {
 
 impl Env {
 	pub fn new() -> Self {
-		let mut store: HashMap<String, Object> = HashMap::new();
-		Self::fill_env_with_builtins(&mut store);
+		Self {
+			store: HashMap::new(),
+			parent: None,
+		}
+	}
+
+	pub fn from(store: HashMap<String, Object>) -> Self {
 		Self {
 			store,
 			parent: None,
 		}
 	}
 
-	fn fill_env_with_builtins(hashmap: &mut HashMap<String, Object>) {
-		let builtins_functions: BuiltinsFns = BuiltinsFns::new();
-		let builtins: Vec<(String, Object)> = builtins_functions.get_builtins();
-		for (name, object) in builtins {
-			hashmap.insert(name, object);
+	pub fn new_with_parent(parent: Rc<RefCell<Env>>) -> Self {
+		Self {
+			store: HashMap::new(),
+			parent: Some(parent),
 		}
 	}
 
