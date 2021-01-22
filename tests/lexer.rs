@@ -150,6 +150,45 @@ fn run_string() {
 }
 
 #[test]
+fn run_vec() {
+	let mut lexer: Lexer = Lexer::new();
+	let source: String = format!("[42, \"Hello World\"]");
+	let module: String = format!("tests/lexer/vec");
+	let mut program: ProgramState = ProgramState::new();
+
+	let expected_tokens: Vec<Token> = vec![
+		Token::new(
+			gl_core::token::TokenType::LBracket,
+			TokenPosition::new(Position::new(0, 0), Position::new(1, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::INTEGER(format!("42")),
+			TokenPosition::new(Position::new(1, 0), Position::new(3, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::COMMA,
+			TokenPosition::new(Position::new(3, 0), Position::new(4, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::STRING(format!("Hello World")),
+			TokenPosition::new(Position::new(5, 0), Position::new(18, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::RBracket,
+			TokenPosition::new(Position::new(18, 0), Position::new(19, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::EOF,
+			TokenPosition::new(Position::new(19, 0), Position::new(19, 0)),
+		),
+	];
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
+
+	assert_eq!(false, rtokens.is_err());
+	assert_eq!(expected_tokens, rtokens.unwrap())
+}
+
+#[test]
 fn run_operators() {
 	let mut lexer: Lexer = Lexer::new();
 	let source: String = format!("+-*/==!==!><>=<=");

@@ -144,6 +144,38 @@ fn run_string() {
 }
 
 #[test]
+fn run_vec() {
+	let mut lexer: Lexer = Lexer::new();
+	let mut parser: Parser = Parser::new();
+	let source: String = format!("[42, \"Hello World\"]");
+	let module: String = format!("tests/lexer/vec");
+	let mut program: ProgramState = ProgramState::new();
+
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
+	assert_eq!(false, rtokens.is_err());
+	let tokens: Vec<Token> = rtokens.unwrap();
+
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Expression(Expression::Literal(Literal::Vec(
+			vec![
+				Expression::Literal(Literal::Integer(
+					num::BigInt::parse_bytes(b"42", 10).unwrap(),
+				)),
+				Expression::Literal(Literal::String(format!("Hello World"))),
+			],
+		))));
+
+		ast
+	};
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap())
+}
+
+#[test]
 fn run_let() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
