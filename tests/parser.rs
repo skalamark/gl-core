@@ -39,7 +39,7 @@ fn run_null() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("null");
-	let module: String = format!("tests/lexer/null");
+	let module: String = format!("tests/parser/null");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
@@ -64,7 +64,7 @@ fn run_integer() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("1234567890");
-	let module: String = format!("tests/lexer/integer");
+	let module: String = format!("tests/parser/integer");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
@@ -91,7 +91,7 @@ fn run_boolean() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("true;false");
-	let module: String = format!("tests/lexer/boolean");
+	let module: String = format!("tests/parser/boolean");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
@@ -121,7 +121,7 @@ fn run_string() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("\"text\"");
-	let module: String = format!("tests/lexer/string");
+	let module: String = format!("tests/parser/string");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
@@ -148,7 +148,7 @@ fn run_vec() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("[42, \"Hello World\"]");
-	let module: String = format!("tests/lexer/vec");
+	let module: String = format!("tests/parser/vec");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
@@ -180,7 +180,7 @@ fn run_let() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();
 	let source: String = format!("let universo = 42");
-	let module: String = format!("tests/lexer/let");
+	let module: String = format!("tests/parser/let");
 	let mut program: ProgramState = ProgramState::new();
 
 	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
