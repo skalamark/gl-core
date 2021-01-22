@@ -176,6 +176,44 @@ fn run_vec() {
 }
 
 #[test]
+fn run_hashmap() {
+	let mut lexer: Lexer = Lexer::new();
+	let mut parser: Parser = Parser::new();
+	let source: String = format!("{{\"name\": \"José\", \"age\": 17}}");
+	let module: String = format!("tests/parser/hashmap");
+	let mut program: ProgramState = ProgramState::new();
+
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
+	assert_eq!(false, rtokens.is_err());
+	let tokens: Vec<Token> = rtokens.unwrap();
+
+	let expected_ast: AbstractSyntaxTree = {
+		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		ast.push(Statement::Expression(Expression::Literal(
+			Literal::HashMap(vec![
+				(
+					Expression::Literal(Literal::String(format!("name"))),
+					Expression::Literal(Literal::String(format!("José"))),
+				),
+				(
+					Expression::Literal(Literal::String(format!("age"))),
+					Expression::Literal(Literal::Integer(
+						num::BigInt::parse_bytes(b"17", 10).unwrap(),
+					)),
+				),
+			]),
+		)));
+
+		ast
+	};
+	let rast: Result<AbstractSyntaxTree, ExceptionMain> = parser.run(tokens, &module, &mut program);
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap());
+}
+
+#[test]
 fn run_let() {
 	let mut lexer: Lexer = Lexer::new();
 	let mut parser: Parser = Parser::new();

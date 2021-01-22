@@ -189,6 +189,61 @@ fn run_vec() {
 }
 
 #[test]
+fn run_hashmap() {
+	let mut lexer: Lexer = Lexer::new();
+	let source: String = format!("{{\"name\": \"José\", \"age\": 17}}");
+	let module: String = format!("tests/lexer/hashmap");
+	let mut program: ProgramState = ProgramState::new();
+
+	let expected_tokens: Vec<Token> = vec![
+		Token::new(
+			gl_core::token::TokenType::LBrace,
+			TokenPosition::new(Position::new(0, 0), Position::new(1, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::STRING(format!("name")),
+			TokenPosition::new(Position::new(1, 0), Position::new(7, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::COLON,
+			TokenPosition::new(Position::new(7, 0), Position::new(8, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::STRING(format!("José")),
+			TokenPosition::new(Position::new(9, 0), Position::new(15, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::COMMA,
+			TokenPosition::new(Position::new(15, 0), Position::new(16, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::STRING(format!("age")),
+			TokenPosition::new(Position::new(17, 0), Position::new(22, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::COLON,
+			TokenPosition::new(Position::new(22, 0), Position::new(23, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::INTEGER(format!("17")),
+			TokenPosition::new(Position::new(24, 0), Position::new(26, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::RBrace,
+			TokenPosition::new(Position::new(26, 0), Position::new(27, 0)),
+		),
+		Token::new(
+			gl_core::token::TokenType::EOF,
+			TokenPosition::new(Position::new(27, 0), Position::new(27, 0)),
+		),
+	];
+	let rtokens: Result<Vec<Token>, ExceptionMain> = lexer.run(source, &module, &mut program);
+
+	assert_eq!(false, rtokens.is_err());
+	assert_eq!(expected_tokens, rtokens.unwrap())
+}
+
+#[test]
 fn run_operators() {
 	let mut lexer: Lexer = Lexer::new();
 	let source: String = format!("+-*/==!==!><>=<=");
