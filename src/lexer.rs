@@ -73,7 +73,7 @@ impl Lexer {
 		let mut identifier_literal: String = String::new();
 		let position_start: Position = self.position.copy();
 
-		while self.cchar != '\0' && self.cchar.is_alphabetic() {
+		while self.cchar != '\0' && (self.cchar.is_alphabetic() || self.cchar.is_digit(10)) {
 			identifier_literal.push(self.cchar);
 			self.next()
 		}
