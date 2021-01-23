@@ -40,6 +40,45 @@ impl Parser {
 		}
 	}
 
+	fn parse_call(
+		&mut self, function: Expression, module: &String, program: &mut ProgramState,
+	) -> Result<Expression, ExceptionMain> {
+		self.next(true);
+		let mut arguments: Vec<Expression> = Vec::new();
+
+		while self.ctoken.typer != TokenType::RParen {
+			let expression: Expression =
+				match self.parse_expression(Precedence::Lowest, module, program) {
+					Ok(expression) => expression,
+					Err(exception) => return Err(exception),
+				};
+			arguments.push(expression);
+			self.next_while_newline();
+
+			match &self.ctoken.typer {
+				TokenType::COMMA => self.next(true),
+				TokenType::RParen => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
+						false,
+					);
+					exception.push(Exception::new(
+						module.clone(),
+						self.ctoken.position.start.copy(),
+					));
+					return Err(exception);
+				}
+			}
+		}
+		self.next(false);
+
+		Ok(Expression::Call {
+			function: Box::new(function),
+			arguments,
+		})
+	}
+
 	fn parse_infix(
 		&mut self, left: Expression, module: &String, program: &mut ProgramState,
 	) -> Result<Expression, ExceptionMain> {
@@ -269,6 +308,12 @@ impl Parser {
 				| TokenType::GreaterThan
 				| TokenType::GreaterThanEqual => {
 					left = match self.parse_infix(left, module, program) {
+						Ok(expression) => expression,
+						Err(exception) => return Err(exception),
+					};
+				}
+				TokenType::LParen => {
+					left = match self.parse_call(left, module, program) {
 						Ok(expression) => expression,
 						Err(exception) => return Err(exception),
 					};
