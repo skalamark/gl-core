@@ -9,12 +9,17 @@ pub struct AbstractSyntaxTree {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Block(Vec<Statement>);
+pub struct Block(pub Vec<Statement>);
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
 	Let(String, Expression),
 	Expression(Expression),
+	Fn {
+		name: String,
+		params: Vec<String>,
+		body: Block,
+	},
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -26,6 +31,10 @@ pub enum Expression {
 	Call {
 		function: Box<Expression>,
 		arguments: Vec<Expression>,
+	},
+	Fn {
+		params: Vec<String>,
+		body: Block,
 	},
 }
 

@@ -1,5 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
+use crate::ast::Block;
 use crate::error::ExceptionMain;
 use crate::position::Position;
 use num::BigInt;
@@ -17,6 +18,7 @@ pub enum Object {
 	Vec(Vec<Object>),
 	HashMap(HashMap<Object, Object>),
 	Builtin(String, i32, BuiltinFn),
+	Fn(Option<String>, Vec<String>, Block),
 }
 
 impl std::fmt::Display for Object {
@@ -52,6 +54,26 @@ impl std::fmt::Display for Object {
 			}
 			Object::Builtin(_, _, _) => {
 				write!(f, "<built-in function>")
+			}
+			Object::Fn(name, params, _) => {
+				let mut fmt_string: String = String::new();
+				fmt_string.push_str(&format!("<function "));
+				let name_fn: String = match name {
+					Some(name_fn) => name_fn.clone(),
+					None => format!("<anonymous>"),
+				};
+				let mut params_string: String = String::new();
+				params_string.push_str(&format!("("));
+				for (i, param) in params.iter().enumerate() {
+					params_string.push_str(&format!("{}", param));
+					if i < params.len() - 1 {
+						params_string.push_str(", ");
+					}
+				}
+				params_string.push_str(&format!(")"));
+
+				fmt_string.push_str(&format!("{} {}>", name_fn, params_string));
+				write!(f, "{}", fmt_string)
 			}
 		}
 	}

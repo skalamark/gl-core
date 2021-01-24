@@ -28,6 +28,7 @@ pub enum TokenType {
 
 	// keywords
 	LET,
+	FN,
 
 	// operators
 	PLUS,             // +

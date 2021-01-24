@@ -1,6 +1,8 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::ast::{AbstractSyntaxTree, Expression, Infix, Literal, Precedence, Prefix, Statement};
+use crate::ast::{
+	AbstractSyntaxTree, Block, Expression, Infix, Literal, Precedence, Prefix, Statement,
+};
 use crate::error::{Exception, ExceptionError, ExceptionMain};
 use crate::state::ProgramState;
 use crate::token::{Token, TokenPosition, TokenType};
@@ -8,6 +10,7 @@ use num::BigInt;
 
 pub struct Parser {
 	ctoken: Token,
+	ntoken: Token,
 	tokens: Vec<Token>,
 }
 
@@ -15,15 +18,17 @@ impl Parser {
 	pub fn new() -> Self {
 		Self {
 			ctoken: Token::new(TokenType::EOF, TokenPosition::default()),
+			ntoken: Token::new(TokenType::EOF, TokenPosition::default()),
 			tokens: Vec::new(),
 		}
 	}
 
 	fn next(&mut self, while_newline: bool) {
+		self.ctoken = self.ntoken.clone();
 		if self.tokens.len() > 0 {
-			self.ctoken = self.tokens.remove(0);
+			self.ntoken = self.tokens.remove(0);
 		} else {
-			self.ctoken = Token::new(TokenType::EOF, self.ctoken.position.copy());
+			self.ntoken = Token::new(TokenType::EOF, self.ctoken.position.copy());
 		}
 
 		if while_newline {
@@ -38,6 +43,108 @@ impl Parser {
 				_ => break,
 			}
 		}
+	}
+
+	fn is_fn_statement_anonymous(&self, module: &String) -> Result<&str, ExceptionMain> {
+		match &self.ntoken.typer {
+			TokenType::IDENTIFIER(_) => return Ok("statement"),
+			TokenType::LParen => return Ok("anonymous"),
+			TokenType::NEWLINE => {}
+			_ => {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected identifier or '('")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ntoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+		}
+
+		for t in self.tokens.iter() {
+			match &t.typer {
+				TokenType::IDENTIFIER(_) => return Ok("statement"),
+				TokenType::LParen => return Ok("anonymous"),
+				TokenType::NEWLINE => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected identifier or '('")),
+						false,
+					);
+					exception.push(Exception::new(module.clone(), t.position.start.copy()));
+					return Err(exception);
+				}
+			}
+		}
+
+		let mut exception: ExceptionMain = ExceptionMain::new(
+			ExceptionError::invalid_syntax(format!("expected identifier or '('")),
+			false,
+		);
+		exception.push(Exception::new(
+			module.clone(),
+			self.ntoken.position.start.copy(),
+		));
+		return Err(exception);
+	}
+
+	fn parse_function_anonymous(
+		&mut self, module: &String, program: &mut ProgramState,
+	) -> Result<Expression, ExceptionMain> {
+		self.next(true);
+		let mut params: Vec<String> = Vec::new();
+
+		match &self.ctoken.typer {
+			TokenType::LParen => {}
+			_ => {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected '('")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+		}
+		self.next(true);
+
+		while self.ctoken.typer != TokenType::RParen {
+			match &self.ctoken.typer {
+				TokenType::IDENTIFIER(arg) => {
+					params.push(arg.clone());
+				}
+				_ => {}
+			}
+			self.next(true);
+
+			match &self.ctoken.typer {
+				TokenType::COMMA => self.next(true),
+				TokenType::RParen => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
+						false,
+					);
+					exception.push(Exception::new(
+						module.clone(),
+						self.ctoken.position.start.copy(),
+					));
+					return Err(exception);
+				}
+			}
+		}
+		self.next(true);
+
+		let body: Block = match self.parse_block(module, program) {
+			Ok(block) => block,
+			Err(exception) => return Err(exception),
+		};
+
+		Ok(Expression::Fn { params, body })
 	}
 
 	fn parse_call(
@@ -281,6 +388,10 @@ impl Parser {
 					Err(exception) => return Err(exception),
 				}
 			}
+			TokenType::FN => match self.parse_function_anonymous(module, program) {
+				Ok(function_anonymous) => function_anonymous,
+				Err(exception) => return Err(exception),
+			},
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("invalid token")),
@@ -323,6 +434,78 @@ impl Parser {
 		}
 
 		Ok(left)
+	}
+
+	fn parse_function(
+		&mut self, _: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
+	) -> Result<Statement, ExceptionMain> {
+		self.next(true);
+		let name: String = match self.ctoken.typer.clone() {
+			TokenType::IDENTIFIER(name) => name,
+			_ => {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected identifier'")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+		};
+		self.next(true);
+		let mut params: Vec<String> = Vec::new();
+
+		match &self.ctoken.typer {
+			TokenType::LParen => {}
+			_ => {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected '('")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+		}
+		self.next(true);
+
+		while self.ctoken.typer != TokenType::RParen {
+			match &self.ctoken.typer {
+				TokenType::IDENTIFIER(arg) => {
+					params.push(arg.clone());
+				}
+				_ => {}
+			}
+			self.next(true);
+
+			match &self.ctoken.typer {
+				TokenType::COMMA => self.next(true),
+				TokenType::RParen => {}
+				_ => {
+					let mut exception: ExceptionMain = ExceptionMain::new(
+						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
+						false,
+					);
+					exception.push(Exception::new(
+						module.clone(),
+						self.ctoken.position.start.copy(),
+					));
+					return Err(exception);
+				}
+			}
+		}
+		self.next(true);
+
+		let body: Block = match self.parse_block(module, program) {
+			Ok(block) => block,
+			Err(exception) => return Err(exception),
+		};
+
+		Ok(Statement::Fn { name, params, body })
 	}
 
 	fn parse_let(
@@ -381,6 +564,19 @@ impl Parser {
 				Ok(let_statement) => ast.push(let_statement),
 				Err(exception) => return Err(exception),
 			},
+			TokenType::FN
+				if {
+					match self.is_fn_statement_anonymous(module) {
+						Ok(typer) => typer,
+						Err(exception) => return Err(exception),
+					}
+				} == "statement" =>
+			{
+				match self.parse_function(ast, module, program) {
+					Ok(fn_statement) => ast.push(fn_statement),
+					Err(exception) => return Err(exception),
+				}
+			}
 			_ => {
 				let expression: Expression =
 					match self.parse_expression(Precedence::Lowest, module, program) {
@@ -426,6 +622,7 @@ impl Parser {
 	) -> Result<AbstractSyntaxTree, ExceptionMain> {
 		let mut ast: AbstractSyntaxTree = AbstractSyntaxTree::new();
 		self.tokens = tokens;
+		self.next(false);
 		self.next(true);
 
 		loop {

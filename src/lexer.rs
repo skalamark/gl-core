@@ -103,6 +103,12 @@ impl Lexer {
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
+			i if i == "fn" => {
+				tokens.push(Token::new(
+					crate::token::TokenType::FN,
+					TokenPosition::new(position_start, self.position.copy()),
+				));
+			}
 			identifier => {
 				tokens.push(Token::new(
 					crate::token::TokenType::IDENTIFIER(identifier),
