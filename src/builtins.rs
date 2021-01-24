@@ -4,6 +4,7 @@ use crate::error::{Exception, ExceptionError, ExceptionMain};
 use crate::object::{BuiltinFn, Object};
 use crate::position::Position;
 use num::BigInt;
+use rustyline::{error::ReadlineError, Editor};
 use std::collections::HashMap;
 use std::io::Write;
 
@@ -17,6 +18,7 @@ impl BuiltinsFns {
 		let builtins = vec![
 			add_builtin("print", -1, print_fn),
 			add_builtin("println", -1, println_fn),
+			add_builtin("input", 1, input_fn),
 			add_builtin("len", 1, len_fn),
 			add_builtin("push", 2, push_fn),
 			add_builtin("insert", 3, insert_fn),
@@ -84,6 +86,36 @@ fn println_fn(args: Vec<Object>, _: String, _: Position) -> ResultBuiltin {
 	}
 	println!("{}", fmt_string);
 	Ok(Object::Null)
+}
+
+fn input_fn(args: Vec<Object>, module: String, position: Position) -> ResultBuiltin {
+	let pretext: String = match &args[0] {
+		Object::String(string) => format!("{}", string),
+		_ => format!("{}", &args[0]),
+	};
+
+	let mut editor: Editor<()> = Editor::<()>::new();
+	match editor.readline(&pretext) {
+		Ok(buffer) => return Ok(Object::String(buffer)),
+		Err(ReadlineError::Interrupted) => {
+			let mut exception: ExceptionMain =
+				ExceptionMain::new(ExceptionError::keyboard_interrupt(format!("")), true);
+			exception.push(Exception::new(module.clone(), position));
+			return Err(exception);
+		}
+		Err(ReadlineError::Eof) => {
+			let mut exception: ExceptionMain =
+				ExceptionMain::new(ExceptionError::eof(format!("")), true);
+			exception.push(Exception::new(module.clone(), position));
+			return Err(exception);
+		}
+		Err(err) => {
+			let mut exception: ExceptionMain =
+				ExceptionMain::new(ExceptionError::eof(format!("{}", err)), true);
+			exception.push(Exception::new(module.clone(), position));
+			return Err(exception);
+		}
+	}
 }
 
 fn vec_new(_: Vec<Object>, _: String, _: Position) -> ResultBuiltin {
