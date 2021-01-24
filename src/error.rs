@@ -30,6 +30,8 @@ pub enum ExceptionType {
 	InvalidSyntax,
 	Name,
 	Type,
+	Eof,
+	KeyboardInterrupt,
 }
 
 impl std::fmt::Display for ExceptionMain {
@@ -74,6 +76,8 @@ impl std::fmt::Display for ExceptionType {
 			ExceptionType::InvalidSyntax => write!(f, "InvalidSyntax"),
 			ExceptionType::Name => write!(f, "NameError"),
 			ExceptionType::Type => write!(f, "TypeError"),
+			ExceptionType::Eof => write!(f, "EOFError"),
+			ExceptionType::KeyboardInterrupt => write!(f, "KeyboardInterrupt"),
 		}
 	}
 }
@@ -119,5 +123,13 @@ impl ExceptionError {
 
 	pub fn type_(message: String) -> Self {
 		Self::custom(ExceptionType::Type, message)
+	}
+
+	pub fn eof(message: String) -> Self {
+		Self::custom(ExceptionType::Eof, message)
+	}
+
+	pub fn keyboard_interrupt(message: String) -> Self {
+		Self::custom(ExceptionType::KeyboardInterrupt, message)
 	}
 }
