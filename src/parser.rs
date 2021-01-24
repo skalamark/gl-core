@@ -553,6 +553,38 @@ impl Parser {
 		Ok(Statement::Let(name, value))
 	}
 
+	fn parse_block(
+		&mut self, module: &String, program: &mut ProgramState,
+	) -> Result<Block, ExceptionMain> {
+		let mut block: AbstractSyntaxTree = AbstractSyntaxTree::new();
+
+		match &self.ctoken.typer {
+			TokenType::LBrace => {}
+			_ => {
+				let mut exception: ExceptionMain = ExceptionMain::new(
+					ExceptionError::invalid_syntax(format!("expected '{{'")),
+					false,
+				);
+				exception.push(Exception::new(
+					module.clone(),
+					self.ctoken.position.start.copy(),
+				));
+				return Err(exception);
+			}
+		}
+		self.next(true);
+
+		while self.ctoken.typer != TokenType::RBrace {
+			match self.parse_statement(&mut block, module, program) {
+				Ok(_) => {}
+				Err(exception) => return Err(exception),
+			}
+		}
+		self.next(false);
+
+		Ok(Block(block.statements))
+	}
+
 	fn parse_statement(
 		&mut self, ast: &mut AbstractSyntaxTree, module: &String, program: &mut ProgramState,
 	) -> Result<(), ExceptionMain> {
