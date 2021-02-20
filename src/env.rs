@@ -1,14 +1,12 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::object::Object;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
+use crate::preludes::*;
+use std::sync::{Arc, Mutex};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Env {
-	store: HashMap<String, Object>,
-	parent: Option<Rc<RefCell<Env>>>,
+	store: HashMap<String, Arc<Mutex<Box<dyn Object>>>>,
+	parent: Option<Arc<Mutex<Env>>>,
 }
 
 impl Env {
@@ -19,29 +17,45 @@ impl Env {
 		}
 	}
 
-	pub fn from(store: HashMap<String, Object>) -> Self {
+	pub fn from(store: HashMap<String, Arc<Mutex<Box<dyn Object>>>>) -> Self {
 		Self {
 			store,
 			parent: None,
 		}
 	}
 
-	pub fn new_with_parent(parent: Rc<RefCell<Env>>) -> Self {
+	pub fn new_with_parent(parent: Arc<Mutex<Env>>) -> Self {
 		Self {
 			store: HashMap::new(),
 			parent: Some(parent),
 		}
 	}
 
-	pub fn set(&mut self, identifier: &String, value: Object) {
+	pub fn set(&mut self, identifier: &String, value: Arc<Mutex<Box<dyn Object>>>) {
 		self.store.insert(identifier.clone(), value);
 	}
 
-	pub fn get(&self, identifier: &String) -> Option<Object> {
+	// pub fn get(&mut self, identifier: &String) -> Option<Box<dyn Object>> {
+	// 	match self.store.remove(identifier) {
+	// 		Some(a) => Some(Box::new(a.lock().unwrap())),
+	// 		None => match &self.parent {
+	// 			Some(parent_env) => {
+	// 				let env = &mut *parent_env.lock().unwrap();
+	// 				env.get(identifier)
+	// 			}
+	// 			None => None,
+	// 		},
+	// 	}
+	// }
+
+	pub fn get_clone_object(&mut self, identifier: &String) -> Option<Arc<Mutex<Box<dyn Object>>>> {
 		match self.store.get(identifier) {
-			Some(object) => Some(object.clone()),
-			None => match self.parent {
-				Some(ref parent_env) => parent_env.borrow().get(identifier),
+			Some(a) => Some(Arc::clone(a)),
+			None => match &self.parent {
+				Some(parent_env) => {
+					let env = &mut *parent_env.lock().unwrap();
+					env.get_clone_object(identifier)
+				}
 				None => None,
 			},
 		}

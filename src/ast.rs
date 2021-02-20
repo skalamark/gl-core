@@ -1,7 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::token::{Token, TokenType};
-use num::BigInt;
+use crate::preludes::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AbstractSyntaxTree {
@@ -15,10 +14,15 @@ pub struct Block(pub Vec<Statement>);
 pub enum Statement {
 	Let(String, Expression),
 	Expression(Expression),
+	ExpressionReturn(Expression),
 	Fn {
 		name: String,
 		params: Vec<String>,
 		body: Block,
+	},
+	Class {
+		name: String,
+		statements: Vec<Statement>,
 	},
 }
 
@@ -28,20 +32,28 @@ pub enum Expression {
 	Literal(Literal),
 	Prefix(Prefix, Box<Expression>),
 	Infix(Infix, Box<Expression>, Box<Expression>),
-	Call {
-		function: Box<Expression>,
-		arguments: Vec<Expression>,
-	},
+	Index(Box<Expression>, Box<Expression>),
 	Fn {
 		params: Vec<String>,
 		body: Block,
 	},
+	Call {
+		function: Box<Expression>,
+		arguments: Vec<Expression>,
+	},
+	If {
+		condition: Box<Expression>,
+		consequence: Block,
+		alternative: Option<Block>,
+	},
+	Attribute(Box<Expression>, Box<Expression>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
 	Null,
 	Integer(BigInt),
+	Float(BigRational),
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Expression>),
@@ -63,10 +75,10 @@ pub enum Infix {
 	Divide,           // /
 	Equal,            // ==
 	NotEqual,         // !=
-	GreaterThanEqual, // >=
-	GreaterThan,      // >
-	LessThanEqual,    // <=
 	LessThan,         // <
+	LessThanEqual,    // <=
+	GreaterThan,      // >
+	GreaterThanEqual, // >=
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -96,14 +108,14 @@ impl std::fmt::Display for Infix {
 		match self {
 			Infix::Plus => write!(f, "+"),
 			Infix::Minus => write!(f, "-"),
-			Infix::Divide => write!(f, "/"),
 			Infix::Multiply => write!(f, "*"),
+			Infix::Divide => write!(f, "/"),
 			Infix::Equal => write!(f, "=="),
 			Infix::NotEqual => write!(f, "!="),
-			Infix::GreaterThanEqual => write!(f, ">="),
-			Infix::GreaterThan => write!(f, ">"),
-			Infix::LessThanEqual => write!(f, "<="),
 			Infix::LessThan => write!(f, "<"),
+			Infix::LessThanEqual => write!(f, "<="),
+			Infix::GreaterThan => write!(f, ">"),
+			Infix::GreaterThanEqual => write!(f, ">="),
 		}
 	}
 }
@@ -112,6 +124,12 @@ impl AbstractSyntaxTree {
 	pub fn new() -> Self {
 		Self {
 			statements: Vec::new(),
+		}
+	}
+
+	pub fn from_block(block: Block) -> Self {
+		Self {
+			statements: block.0,
 		}
 	}
 
@@ -128,12 +146,14 @@ impl Precedence {
 	pub fn from_token_type(token_type: &TokenType) -> Self {
 		match token_type {
 			TokenType::EQUAL | TokenType::NotEqual => Precedence::Equals,
-			TokenType::LessThan | TokenType::LessThanEqual => Precedence::LessGreater,
-			TokenType::GreaterThan | TokenType::GreaterThanEqual => Precedence::LessGreater,
+			TokenType::LessThan
+			| TokenType::LessThanEqual
+			| TokenType::GreaterThan
+			| TokenType::GreaterThanEqual => Precedence::LessGreater,
 			TokenType::PLUS | TokenType::MINUS => Precedence::Sum,
-			TokenType::MULTIPLY | TokenType::DIVIDE => Precedence::Product,
-			TokenType::LBracket => Precedence::Index,
-			TokenType::LParen => Precedence::Call,
+			TokenType::ASTERISK | TokenType::SLASH => Precedence::Product,
+			TokenType::LeftParen => Precedence::Call,
+			TokenType::LeftBracket => Precedence::Index,
 			_ => Precedence::Lowest,
 		}
 	}

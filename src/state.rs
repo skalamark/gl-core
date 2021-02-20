@@ -1,10 +1,9 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
+use crate::env::Env;
 use crate::object::Object;
-use crate::{builtins, env::Env};
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 pub struct ProgramState {
 	pub env: EnvState,
@@ -12,21 +11,23 @@ pub struct ProgramState {
 
 pub struct EnvState {
 	pub crate_module: String,
-	pub modules: HashMap<String, Rc<RefCell<Env>>>,
+	pub builtins_module: Arc<Mutex<Env>>,
+	pub modules: HashMap<String, Arc<Mutex<Env>>>,
 }
 
 impl ProgramState {
-	pub fn new() -> Self {
+	pub fn new(builtins_module: Arc<Mutex<Env>>) -> Self {
 		Self {
-			env: EnvState::new(),
+			env: EnvState::new(builtins_module),
 		}
 	}
 }
 
 impl EnvState {
-	pub fn new() -> Self {
+	pub fn new(builtins_module: Arc<Mutex<Env>>) -> Self {
 		Self {
 			crate_module: String::new(),
+			builtins_module,
 			modules: HashMap::new(),
 		}
 	}
@@ -34,25 +35,29 @@ impl EnvState {
 	pub fn add_module(&mut self, name: String) {
 		self.modules.insert(
 			name,
-			Rc::new(RefCell::new(Env::from(builtins::BuiltinsFns::new()))),
+			Arc::new(Mutex::new(Env::new_with_parent(Arc::clone(
+				&self.builtins_module,
+			)))),
 		);
 	}
 
-	pub fn get(&self, identifier: &String, module: &String) -> Option<Object> {
+	pub fn get(&self, identifier: &String, module: &String) -> Option<Arc<Mutex<Box<dyn Object>>>> {
 		if module == "crate" {
-			self.modules[&self.crate_module].borrow().get(identifier)
+			let env = &mut *self.modules[&self.crate_module].lock().unwrap();
+			env.get_clone_object(identifier)
 		} else {
-			self.modules[module].borrow().get(identifier)
+			let env = &mut *self.modules[module].lock().unwrap();
+			env.get_clone_object(identifier)
 		}
 	}
 
-	pub fn set(&self, identifier: &String, value: Object, module: &String) {
+	pub fn set(&self, identifier: &String, value: Arc<Mutex<Box<dyn Object>>>, module: &String) {
 		if module == "crate" {
-			self.modules[&self.crate_module]
-				.borrow_mut()
-				.set(identifier, value)
+			let env = &mut *self.modules[module].lock().unwrap();
+			env.set(identifier, value)
 		} else {
-			self.modules[module].borrow_mut().set(identifier, value)
+			let env = &mut *self.modules[module].lock().unwrap();
+			env.set(identifier, value)
 		}
 	}
 }
