@@ -48,7 +48,7 @@ impl Parser {
 	fn is_fn_statement_anonymous(&self, module: &String) -> Result<&str, ExceptionMain> {
 		match &self.ntoken.typer {
 			TokenType::IDENTIFIER(_) => return Ok("statement"),
-			TokenType::LParen => return Ok("anonymous"),
+			TokenType::LeftParen => return Ok("anonymous"),
 			TokenType::NEWLINE => {}
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
@@ -66,7 +66,7 @@ impl Parser {
 		for t in self.tokens.iter() {
 			match &t.typer {
 				TokenType::IDENTIFIER(_) => return Ok("statement"),
-				TokenType::LParen => return Ok("anonymous"),
+				TokenType::LeftParen => return Ok("anonymous"),
 				TokenType::NEWLINE => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
@@ -97,7 +97,7 @@ impl Parser {
 		let mut params: Vec<String> = Vec::new();
 
 		match &self.ctoken.typer {
-			TokenType::LParen => {}
+			TokenType::LeftParen => {}
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected '('")),
@@ -112,7 +112,7 @@ impl Parser {
 		}
 		self.next(true);
 
-		while self.ctoken.typer != TokenType::RParen {
+		while self.ctoken.typer != TokenType::RightParen {
 			match &self.ctoken.typer {
 				TokenType::IDENTIFIER(arg) => {
 					params.push(arg.clone());
@@ -123,7 +123,7 @@ impl Parser {
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next(true),
-				TokenType::RParen => {}
+				TokenType::RightParen => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
 						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
@@ -153,7 +153,7 @@ impl Parser {
 		self.next(true);
 		let mut arguments: Vec<Expression> = Vec::new();
 
-		while self.ctoken.typer != TokenType::RParen {
+		while self.ctoken.typer != TokenType::RightParen {
 			let expression: Expression =
 				match self.parse_expression(Precedence::Lowest, module, program) {
 					Ok(expression) => expression,
@@ -164,7 +164,7 @@ impl Parser {
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next(true),
-				TokenType::RParen => {}
+				TokenType::RightParen => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
 						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
@@ -194,8 +194,8 @@ impl Parser {
 		match &self.ctoken.typer {
 			TokenType::PLUS => infix = Infix::Plus,
 			TokenType::MINUS => infix = Infix::Minus,
-			TokenType::MULTIPLY => infix = Infix::Multiply,
-			TokenType::DIVIDE => infix = Infix::Divide,
+			TokenType::ASTERISK => infix = Infix::Multiply,
+			TokenType::SLASH => infix = Infix::Divide,
 			TokenType::EQUAL => infix = Infix::Equal,
 			TokenType::NotEqual => infix = Infix::NotEqual,
 			TokenType::LessThan => infix = Infix::LessThan,
@@ -223,7 +223,7 @@ impl Parser {
 		let mut prefix: Prefix = Prefix::Not;
 
 		match &self.ctoken.typer {
-			TokenType::NOT => prefix = Prefix::Not,
+			TokenType::BANG => prefix = Prefix::Not,
 			TokenType::PLUS => prefix = Prefix::Plus,
 			TokenType::MINUS => prefix = Prefix::Minus,
 			_ => {}
@@ -242,7 +242,7 @@ impl Parser {
 		self.next(true);
 		let mut list: Vec<(Expression, Expression)> = Vec::new();
 
-		while self.ctoken.typer != TokenType::RBrace {
+		while self.ctoken.typer != TokenType::RightBrace {
 			let key: Expression = match self.parse_expression(Precedence::Lowest, module, program) {
 				Ok(key) => key,
 				Err(exception) => return Err(exception),
@@ -272,7 +272,7 @@ impl Parser {
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next(true),
-				TokenType::RBrace => {}
+				TokenType::RightBrace => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
 						ExceptionError::invalid_syntax(format!("expected ',' or '}}'")),
@@ -297,7 +297,7 @@ impl Parser {
 		self.next(true);
 		let mut list: Vec<Expression> = Vec::new();
 
-		while self.ctoken.typer != TokenType::RBracket {
+		while self.ctoken.typer != TokenType::RightBracket {
 			let expression: Expression =
 				match self.parse_expression(Precedence::Lowest, module, program) {
 					Ok(expression) => expression,
@@ -308,7 +308,7 @@ impl Parser {
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next(true),
-				TokenType::RBracket => {}
+				TokenType::RightBracket => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
 						ExceptionError::invalid_syntax(format!("expected ',' or ']'")),
@@ -340,7 +340,7 @@ impl Parser {
 	) -> Result<Expression, ExceptionMain> {
 		// prefix
 		let mut left: Expression = match self.ctoken.typer.clone() {
-			t if t.is_eof() => {
+			t if t.is(crate::token::TokenType::EOF) => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::unexpected_eof(format!("unexpected EOF while parsing")),
 					false,
@@ -374,15 +374,15 @@ impl Parser {
 				self.next(false);
 				Expression::Literal(Literal::String(string_literal))
 			}
-			TokenType::LBracket => match self.parse_vec(module, program) {
+			TokenType::LeftBracket => match self.parse_vec(module, program) {
 				Ok(vec_literal) => Expression::Literal(vec_literal),
 				Err(exception) => return Err(exception),
 			},
-			TokenType::LBrace => match self.parse_hashmap(module, program) {
+			TokenType::LeftBrace => match self.parse_hashmap(module, program) {
 				Ok(hashmap_literal) => Expression::Literal(hashmap_literal),
 				Err(exception) => return Err(exception),
 			},
-			TokenType::NOT | TokenType::PLUS | TokenType::MINUS => {
+			TokenType::BANG | TokenType::PLUS | TokenType::MINUS => {
 				match self.parse_prefix(module, program) {
 					Ok(expression) => expression,
 					Err(exception) => return Err(exception),
@@ -410,8 +410,8 @@ impl Parser {
 			match &self.ctoken.typer {
 				TokenType::PLUS
 				| TokenType::MINUS
-				| TokenType::MULTIPLY
-				| TokenType::DIVIDE
+				| TokenType::ASTERISK
+				| TokenType::SLASH
 				| TokenType::EQUAL
 				| TokenType::NotEqual
 				| TokenType::LessThan
@@ -423,7 +423,7 @@ impl Parser {
 						Err(exception) => return Err(exception),
 					};
 				}
-				TokenType::LParen => {
+				TokenType::LeftParen => {
 					left = match self.parse_call(left, module, program) {
 						Ok(expression) => expression,
 						Err(exception) => return Err(exception),
@@ -458,7 +458,7 @@ impl Parser {
 		let mut params: Vec<String> = Vec::new();
 
 		match &self.ctoken.typer {
-			TokenType::LParen => {}
+			TokenType::LeftParen => {}
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected '('")),
@@ -473,7 +473,7 @@ impl Parser {
 		}
 		self.next(true);
 
-		while self.ctoken.typer != TokenType::RParen {
+		while self.ctoken.typer != TokenType::RightParen {
 			match &self.ctoken.typer {
 				TokenType::IDENTIFIER(arg) => {
 					params.push(arg.clone());
@@ -484,7 +484,7 @@ impl Parser {
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next(true),
-				TokenType::RParen => {}
+				TokenType::RightParen => {}
 				_ => {
 					let mut exception: ExceptionMain = ExceptionMain::new(
 						ExceptionError::invalid_syntax(format!("expected ',' or ')'")),
@@ -559,7 +559,7 @@ impl Parser {
 		let mut block: AbstractSyntaxTree = AbstractSyntaxTree::new();
 
 		match &self.ctoken.typer {
-			TokenType::LBrace => {}
+			TokenType::LeftBrace => {}
 			_ => {
 				let mut exception: ExceptionMain = ExceptionMain::new(
 					ExceptionError::invalid_syntax(format!("expected '{{'")),
@@ -574,7 +574,7 @@ impl Parser {
 		}
 		self.next(true);
 
-		while self.ctoken.typer != TokenType::RBrace {
+		while self.ctoken.typer != TokenType::RightBrace {
 			match self.parse_statement(&mut block, module, program) {
 				Ok(_) => {}
 				Err(exception) => return Err(exception),
@@ -591,7 +591,7 @@ impl Parser {
 		self.next_while_newline();
 
 		match &self.ctoken.typer {
-			t if t.is_eof() => return Ok(()),
+			t if t.is(crate::token::TokenType::EOF) => return Ok(()),
 			TokenType::LET => match self.parse_let(ast, module, program) {
 				Ok(let_statement) => ast.push(let_statement),
 				Err(exception) => return Err(exception),
@@ -658,7 +658,7 @@ impl Parser {
 		self.next(true);
 
 		loop {
-			if self.ctoken.typer.is_eof() {
+			if self.ctoken.typer.is(crate::token::TokenType::EOF) {
 				break;
 			}
 
