@@ -23,6 +23,7 @@ pub enum TokenType {
 	IDENTIFIER(String),
 	NULL,
 	INTEGER(String),
+	FLOAT(String),
 	BOOLEAN(bool),
 	STRING(String),
 
@@ -33,33 +34,41 @@ pub enum TokenType {
 	// operators
 	PLUS,             // +
 	MINUS,            // -
-	MULTIPLY,         // *
-	DIVIDE,           // /
+	ASTERISK,         // *
+	SLASH,            // /
+	ASSIGN,           // =
+	BANG,             // !
 	EQUAL,            // ==
 	NotEqual,         // !=
-	ASSIGN,           // =
-	NOT,              // !
 	LessThan,         // <
-	GreaterThan,      // >
 	LessThanEqual,    // <=
+	GreaterThan,      // >
 	GreaterThanEqual, // >=
 
 	// punctuations
-	DOT,       // .
-	COMMA,     // ,
-	SEMICOLON, // ;
-	COLON,     // :
-	LParen,    // (
-	RParen,    // )
-	LBracket,  // [
-	RBracket,  // ]
-	LBrace,    // {
-	RBrace,    // }
+	DOT,          // .
+	COMMA,        // ,
+	SEMICOLON,    // ;
+	COLON,        // :
+	LeftParen,    // (
+	RightParen,   // )
+	LeftBracket,  // [
+	RightBracket, // ]
+	LeftBrace,    // {
+	RightBrace,   // }
 }
 
 impl Token {
 	pub fn new(typer: TokenType, position: TokenPosition) -> Self {
 		Self { typer, position }
+	}
+
+	pub fn default() -> Self {
+		Self::new(TokenType::EOF, TokenPosition::default())
+	}
+
+	pub fn copy(&self) -> Self {
+		Self::new(self.typer.clone(), self.position.copy())
 	}
 }
 
@@ -78,10 +87,7 @@ impl TokenPosition {
 }
 
 impl TokenType {
-	pub fn is_eof(&self) -> bool {
-		match self {
-			TokenType::EOF => true,
-			_ => false,
-		}
+	pub fn is(&self, other: Self) -> bool {
+		self == &other
 	}
 }
