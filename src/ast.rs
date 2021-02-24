@@ -131,9 +131,9 @@ impl Precedence {
 			TokenType::LessThan | TokenType::LessThanEqual => Precedence::LessGreater,
 			TokenType::GreaterThan | TokenType::GreaterThanEqual => Precedence::LessGreater,
 			TokenType::PLUS | TokenType::MINUS => Precedence::Sum,
-			TokenType::MULTIPLY | TokenType::DIVIDE => Precedence::Product,
-			TokenType::LBracket => Precedence::Index,
-			TokenType::LParen => Precedence::Call,
+			TokenType::ASTERISK | TokenType::SLASH => Precedence::Product,
+			TokenType::LeftBracket => Precedence::Index,
+			TokenType::LeftParen => Precedence::Call,
 			_ => Precedence::Lowest,
 		}
 	}

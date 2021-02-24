@@ -163,14 +163,14 @@ impl Lexer {
 			c if c == '*' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::MULTIPLY,
+					crate::token::TokenType::ASTERISK,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == '/' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::DIVIDE,
+					crate::token::TokenType::SLASH,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
@@ -199,7 +199,7 @@ impl Lexer {
 					));
 				} else {
 					tokens.push(Token::new(
-						crate::token::TokenType::NOT,
+						crate::token::TokenType::BANG,
 						TokenPosition::new(position_start, self.position.copy()),
 					));
 				}
@@ -266,42 +266,42 @@ impl Lexer {
 			c if c == '(' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::LParen,
+					crate::token::TokenType::LeftParen,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == ')' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::RParen,
+					crate::token::TokenType::RightParen,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == '[' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::LBracket,
+					crate::token::TokenType::LeftBracket,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == ']' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::RBracket,
+					crate::token::TokenType::RightBracket,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == '{' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::LBrace,
+					crate::token::TokenType::LeftBrace,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
 			c if c == '}' => {
 				self.next();
 				tokens.push(Token::new(
-					crate::token::TokenType::RBrace,
+					crate::token::TokenType::RightBrace,
 					TokenPosition::new(position_start, self.position.copy()),
 				));
 			}
@@ -396,7 +396,7 @@ impl Lexer {
 
 		loop {
 			if let Some(last_token) = tokens.last() {
-				if last_token.typer.is_eof() {
+				if last_token.typer.is(crate::token::TokenType::EOF) {
 					break;
 				}
 			}
