@@ -1,7 +1,6 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::token::{Token, TokenType};
-use num::BigInt;
+use crate::preludes::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AbstractSyntaxTree {
@@ -15,6 +14,7 @@ pub struct Block(pub Vec<Statement>);
 pub enum Statement {
 	Let(String, Expression),
 	Expression(Expression),
+	ExpressionReturn(Expression),
 	Fn {
 		name: String,
 		params: Vec<String>,
@@ -28,13 +28,13 @@ pub enum Expression {
 	Literal(Literal),
 	Prefix(Prefix, Box<Expression>),
 	Infix(Infix, Box<Expression>, Box<Expression>),
-	Call {
-		function: Box<Expression>,
-		arguments: Vec<Expression>,
-	},
 	Fn {
 		params: Vec<String>,
 		body: Block,
+	},
+	Call {
+		function: Box<Expression>,
+		arguments: Vec<Expression>,
 	},
 }
 
@@ -42,6 +42,7 @@ pub enum Expression {
 pub enum Literal {
 	Null,
 	Integer(BigInt),
+	Float(BigRational),
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Expression>),

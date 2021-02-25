@@ -13,6 +13,13 @@ pub mod state;
 pub mod token;
 
 pub mod preludes {
+	pub use anyhow;
+	pub use num::bigint::ToBigInt;
+	pub use num::{BigInt, BigRational, FromPrimitive, ToPrimitive};
+	pub use std::cell::RefCell;
+	pub use std::collections::HashMap;
+	pub use std::rc::Rc;
+
 	pub use crate::ast::*;
 	pub use crate::error::*;
 	pub use crate::lexer::*;

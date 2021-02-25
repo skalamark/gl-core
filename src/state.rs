@@ -1,10 +1,7 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::object::Object;
-use crate::{builtins, env::Env};
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
+use crate::env::Env;
+use crate::preludes::*;
 
 pub struct ProgramState {
 	pub env: EnvState,
@@ -32,10 +29,7 @@ impl EnvState {
 	}
 
 	pub fn add_module(&mut self, name: String) {
-		self.modules.insert(
-			name,
-			Rc::new(RefCell::new(Env::from(builtins::BuiltinsFns::new()))),
-		);
+		self.modules.insert(name, Rc::new(RefCell::new(Env::new())));
 	}
 
 	pub fn get(&self, identifier: &String, module: &String) -> Option<Object> {

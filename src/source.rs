@@ -14,7 +14,7 @@ pub struct Source {
 }
 
 impl Source {
-	pub fn from_strig(string: String) -> io::Result<Self> {
+	pub fn from_string(string: String) -> io::Result<Self> {
 		Ok(Self {
 			chars_cache: Vec::new(),
 			data: SourceType::String(Vec::new(), string),
@@ -44,6 +44,10 @@ impl Source {
 					}
 				} else if string.len() > 0 {
 					let mut limite_read_chars: usize = 10;
+					if string.len() < limite_read_chars {
+						limite_read_chars = string.len();
+					}
+
 					loop {
 						let read_chars: Vec<char> = match string.get(0..limite_read_chars) {
 							Some(read_chars) => read_chars.chars().collect(),
@@ -52,6 +56,11 @@ impl Source {
 								continue;
 							}
 						};
+						let fstring: String =
+							format!("{}", string.get(limite_read_chars..).unwrap());
+						string.clear();
+						string.push_str(&fstring);
+
 						for one_char in read_chars {
 							chars.push(one_char);
 						}
