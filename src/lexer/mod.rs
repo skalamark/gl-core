@@ -12,8 +12,9 @@ type ResultLexer = Result<(), Exception>;
 
 pub struct Lexer {
 	cchar: char,
-	source: Source,
 	position: Position,
+	eof_source: bool,
+	source: Source,
 	tokens_cache: Vec<Token>,
 	module: String,
 }
@@ -23,6 +24,7 @@ impl Lexer {
 		let mut lexer: Self = Self {
 			cchar: '\0',
 			position: Position::default(),
+			eof_source: false,
 			source,
 			tokens_cache: Vec::new(),
 			module: module.clone(),
@@ -42,7 +44,10 @@ impl Lexer {
 
 		self.cchar = match self.source.next_char() {
 			Some(c) => c,
-			None => '\0',
+			None => {
+				self.eof_source = true;
+				'\0'
+			}
 		};
 	}
 
@@ -54,12 +59,12 @@ impl Lexer {
 		self.tokens_cache.push(token);
 	}
 
-	fn next(&mut self) -> Result<Token, Exception> {
+	pub fn next(&mut self) -> Result<Token, Exception> {
 		if self.tokens_cache.len() > 0 {
 			return Ok(self.tokens_cache.remove(0));
 		}
 
-		if self.is_eof_char() {
+		if self.eof_source && self.is_eof_char() {
 			return Ok(Token::new(
 				TokenType::EOF,
 				TokenPosition::new(self.position.copy(), self.position.copy()),

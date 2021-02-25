@@ -26,7 +26,7 @@ impl Lexer {
 			}
 
 			number_literal.push(self.cchar);
-			self.next_char()
+			self.next_char();
 		}
 
 		if !dot {
