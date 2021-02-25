@@ -2,21 +2,18 @@
 
 extern crate gl_core;
 
+use gl_core::error::Exception;
 use gl_core::lexer::Lexer;
-use gl_core::state::ProgramState;
+use gl_core::source::Source;
 use gl_core::token::Token;
 
 fn main() {
-	let mut lexer: Lexer = Lexer::new();
-	let source: String = format!("42");
+	let source: Source = Source::from_string(format!("42")).unwrap();
 	let module: String = format!("examples/lexer");
-	let mut program: ProgramState = ProgramState::new();
+	let mut lexer: Lexer = Lexer::new(source, &module);
 
-	let _tokens: Vec<Token> = match lexer.run(source, &module, &mut program) {
-		Ok(tokens) => tokens,
-		Err(exception) => {
-			println!("{}", exception);
-			return;
-		}
-	};
+	let rtokens: Result<Vec<Token>, Exception> = lexer.run();
+	assert_eq!(false, rtokens.is_err());
+
+	let _tokens: Vec<Token> = rtokens.unwrap();
 }
