@@ -1,18 +1,15 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
-use crate::ast::Block;
-use crate::error::ExceptionMain;
-use crate::position::Position;
-use num::BigInt;
-use std::collections::HashMap;
+use crate::preludes::*;
 use std::hash::{Hash, Hasher};
 
-pub type BuiltinFn = fn(Vec<Object>, String, Position) -> Result<Object, ExceptionMain>;
+pub type BuiltinFn = fn(Vec<Object>, String, Position) -> Result<Object, Exception>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
 	Null,
 	Integer(BigInt),
+	Float(BigRational),
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Object>),
@@ -26,6 +23,7 @@ impl std::fmt::Display for Object {
 		match self {
 			Object::Null => write!(f, "null"),
 			Object::Integer(integer) => write!(f, "{}", integer),
+			Object::Float(float) => write!(f, "{}", float),
 			Object::Boolean(boolean) => write!(f, "{}", boolean),
 			Object::String(string) => write!(f, "{:?}", string),
 			Object::Vec(vector) => {
@@ -83,8 +81,9 @@ impl Eq for Object {}
 
 impl Hash for Object {
 	fn hash<H: Hasher>(&self, state: &mut H) {
-		match *self {
+		match &self {
 			Object::Integer(ref i) => i.hash(state),
+			Object::Float(ref f) => f.hash(state),
 			Object::Boolean(ref b) => b.hash(state),
 			Object::String(ref s) => s.hash(state),
 			_ => "".hash(state),
