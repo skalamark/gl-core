@@ -20,6 +20,7 @@ pub enum Statement {
 		params: Vec<String>,
 		body: Block,
 	},
+	Import(String),
 }
 
 #[derive(Clone, Debug, PartialEq)]
