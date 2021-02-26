@@ -21,6 +21,7 @@ impl Lexer {
 			i if i == "false" => TokenType::BOOLEAN(false),
 			i if i == "let" => TokenType::LET,
 			i if i == "fn" => TokenType::FN,
+			i if i == "import" => TokenType::IMPORT,
 			identifier => TokenType::IDENTIFIER(identifier),
 		};
 

@@ -30,6 +30,7 @@ pub enum TokenType {
 	// keywords
 	LET,
 	FN,
+	IMPORT,
 
 	// operators
 	PLUS,             // +
