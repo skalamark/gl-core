@@ -1,9 +1,82 @@
 // Copyright 2021 the GLanguage authors. All rights reserved. MIT license.
 
 use crate::preludes::*;
+use libloading::Library;
 use std::hash::{Hash, Hasher};
 
 pub type BuiltinFn = fn(Vec<Object>, String, Position) -> Result<Object, Exception>;
+
+#[derive(Debug)]
+pub struct ModuleDynLibrary {
+	name: String,
+	dynlibrary: Library,
+	functions: HashMap<String, fn(HashMap<String, Object>) -> Result<(), Exception>>,
+}
+
+impl ModuleDynLibrary {
+	pub fn new(
+		name: String, dynlibrary: Library,
+		functions: HashMap<String, fn(HashMap<String, Object>) -> Result<(), Exception>>,
+	) -> Self {
+		Self {
+			name: name,
+			dynlibrary,
+			functions,
+		}
+	}
+
+	pub fn get_name(&self) -> String {
+		let mut name: String = self.name.clone();
+		name = name.replace(".dll", "");
+		name = name.replace(".so", "");
+		name = name.replace("./", "");
+		name
+	}
+
+	pub fn get_full_name(&self) -> String {
+		self.name.clone()
+	}
+
+	pub fn get_function(
+		&mut self, name: String,
+	) -> Result<fn(HashMap<String, Object>) -> Result<(), Exception>, Exception> {
+		match self.functions.get(&name) {
+			Some(function) => Ok(function.clone()),
+			None => unsafe {
+				match self
+					.dynlibrary
+					.get::<fn(HashMap<String, Object>) -> Result<(), Exception>>(name.as_bytes())
+				{
+					Ok(function) => {
+						self.functions.insert(name.clone(), *function);
+						return self.get_function(name.clone());
+					}
+					Err(err) => {
+						let exception: Exception =
+							Exception::new(Except::unexpected_eof(format!("{}", err)), false);
+						return Err(exception);
+					}
+				}
+			},
+		}
+	}
+}
+
+impl Clone for ModuleDynLibrary {
+	fn clone(&self) -> Self {
+		Self {
+			name: self.name.clone(),
+			dynlibrary: unsafe { Library::new(self.name.clone()).unwrap() },
+			functions: self.functions.clone(),
+		}
+	}
+}
+
+impl PartialEq for ModuleDynLibrary {
+	fn eq(&self, other: &Self) -> bool {
+		self.name == other.name
+	}
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -16,6 +89,7 @@ pub enum Object {
 	HashMap(HashMap<Object, Object>),
 	Builtin(String, i32, BuiltinFn),
 	Fn(Option<String>, Vec<String>, Block),
+	ModuleDynLibrary(ModuleDynLibrary),
 }
 
 impl std::fmt::Display for Object {
@@ -72,6 +146,14 @@ impl std::fmt::Display for Object {
 
 				fmt_string.push_str(&format!("{} {}>", name_fn, params_string));
 				write!(f, "{}", fmt_string)
+			}
+			Object::ModuleDynLibrary(module) => {
+				write!(
+					f,
+					"<module <{}> from {}>",
+					module.get_name(),
+					module.get_full_name()
+				)
 			}
 		}
 	}
