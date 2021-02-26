@@ -8,16 +8,10 @@ impl Parser {
 
 		let mut statement: Statement = match &self.ctoken.typer {
 			TokenType::LET => self.parse_let(),
-			TokenType::FN
-				if {
-					match self.is_fn_statement_anonymous() {
-						Ok(typer) => typer,
-						Err(exception) => return Err(exception),
-					}
-				} == "statement" =>
-			{
+			TokenType::FN if self.is_fn_statement_anonymous()? == "statement" => {
 				self.parse_function()
 			}
+			TokenType::IMPORT => self.parse_import(),
 			_ => {
 				let expression: Expression = match self.parse_expression(Precedence::Lowest) {
 					Ok(expression) => expression,
