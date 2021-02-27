@@ -97,7 +97,7 @@ impl std::fmt::Display for Object {
 		match self {
 			Object::Null => write!(f, "null"),
 			Object::Integer(integer) => write!(f, "{}", integer),
-			Object::Float(float) => write!(f, "{}", float),
+			Object::Float(float) => write!(f, "{}", big_rational_to_string(float.clone())),
 			Object::Boolean(boolean) => write!(f, "{}", boolean),
 			Object::String(string) => write!(f, "{:?}", string),
 			Object::Vec(vector) => {
