@@ -17,7 +17,7 @@ impl Parser {
 
 			return Err(exception);
 		}
-		self.next_token(true)?;
+		self.next_token(true)?; // LeftBrace
 
 		while !self.ctoken.typer.is(TokenType::RightBrace) {
 			block.push(self.statement(false)?);
@@ -35,7 +35,7 @@ impl Parser {
 			}
 		}
 
-		self.next_token(false)?;
+		self.next_token(false)?; // RightBrace
 		Ok(Block(block.statements))
 	}
 }

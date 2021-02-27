@@ -4,7 +4,7 @@ use crate::preludes::*;
 
 impl Parser {
 	pub fn parse_let(&mut self) -> Result<Statement, Exception> {
-		self.next_token(true)?;
+		self.next_token(true)?; // LET
 
 		let name: String = match self.ctoken.typer.clone() {
 			TokenType::IDENTIFIER(name) => name,
@@ -23,7 +23,7 @@ impl Parser {
 			}
 		};
 
-		self.next_token(true)?;
+		self.next_token(true)?; // IDENTIFIER
 
 		if !self.ctoken.typer.is(TokenType::ASSIGN) {
 			let mut exception: Exception =
@@ -37,7 +37,7 @@ impl Parser {
 			return Err(exception);
 		}
 
-		self.next_token(true)?;
+		self.next_token(true)?; // ASSIGN
 		let value: Expression = self.parse_expression(Precedence::Lowest)?;
 		Ok(Statement::Let(name, value))
 	}

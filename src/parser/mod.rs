@@ -29,8 +29,8 @@ impl Parser {
 			module,
 		};
 
-		let _ = parser.next_token(false);
-		let _ = parser.next_token(true);
+		let _ = parser.next_token(false); // EOF
+		let _ = parser.next_token(true); // EOF
 
 		parser
 	}
@@ -48,7 +48,7 @@ impl Parser {
 
 	fn next_while_newline(&mut self) -> Result<(), Exception> {
 		while self.ctoken.typer.is(TokenType::NEWLINE) {
-			self.next_token(false)?;
+			self.next_token(false)?; // NEWLINE
 		}
 
 		Ok(())

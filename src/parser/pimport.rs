@@ -4,7 +4,7 @@ use crate::preludes::*;
 
 impl Parser {
 	pub fn parse_import(&mut self) -> Result<Statement, Exception> {
-		self.next_token(true)?;
+		self.next_token(true)?; // IMPORT
 
 		let name: String = match self.ctoken.typer.clone() {
 			TokenType::STRING(name) => name,
@@ -21,7 +21,7 @@ impl Parser {
 			}
 		};
 
-		self.next_token(true)?;
+		self.next_token(true)?; // STRING
 		Ok(Statement::Import(name))
 	}
 }

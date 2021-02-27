@@ -36,13 +36,13 @@ impl Parser {
 				}
 			}
 			TokenType::SEMICOLON => {
-				self.next_token(true)?;
+				self.next_token(true)?; // SEMICOLON
 			}
 			TokenType::NEWLINE => {
-				self.next_token(true)?;
+				self.next_token(true)?; // NEWLINE
 				match &self.ctoken.typer {
 					TokenType::SEMICOLON => {
-						self.next_token(true)?;
+						self.next_token(true)?; // SEMICOLON
 					}
 					_ => {
 						if let Statement::Expression(expression) = statement {
