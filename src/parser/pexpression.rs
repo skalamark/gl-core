@@ -72,6 +72,8 @@ impl Parser {
 				| TokenType::LessThanEqual
 				| TokenType::GreaterThan
 				| TokenType::GreaterThanEqual => left = self.parse_infix(left)?,
+				TokenType::LeftParen => left = self.parse_call(left)?,
+				TokenType::LeftBracket => unimplemented!(),
 				_ => {}
 			}
 		}
