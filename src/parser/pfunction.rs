@@ -124,7 +124,7 @@ impl Parser {
 
 		self.next_token(true)?; // LeftParen
 
-		while self.ctoken.typer != TokenType::RightParen {
+		while !self.ctoken.typer.is(TokenType::RightParen) {
 			if let TokenType::IDENTIFIER(argument) = &self.ctoken.typer {
 				params.push(argument.clone());
 				self.next_token(true)?; // IDENTIFIER
