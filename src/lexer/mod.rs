@@ -12,51 +12,66 @@ type ResultLexer = Result<(), Exception>;
 
 pub struct Lexer {
 	cchar: char,
+	nchar: char,
+	eof: bool,
 	position: Position,
-	eof_source: bool,
-	source: Source,
 	tokens_cache: Vec<Token>,
+	source: Source,
 	module: String,
 }
 
 impl Lexer {
-	pub fn new(source: Source, module: &String) -> Self {
+	pub fn new<T: Into<String>>(source: Source, module: T) -> Self {
 		let mut lexer: Self = Self {
 			cchar: '\0',
+			nchar: '\0',
+			eof: false,
 			position: Position::default(),
-			eof_source: false,
 			source,
 			tokens_cache: Vec::new(),
-			module: module.clone(),
+			module: module.into(),
 		};
-		lexer.next_char();
+		lexer.next_char(); // '\0'
+		lexer.next_char(); // '\0'
 		lexer
 	}
 
-	pub fn get_module(&self) -> String {
-		self.module.clone()
-	}
+	pub fn get_module(&self) -> String { self.module.clone() }
+
+	fn is_eof_char(&self) -> bool { self.cchar == '\0' }
 
 	fn next_char(&mut self) {
 		if self.cchar != '\0' {
 			self.position.column += 1;
 		}
 
-		self.cchar = match self.source.next_char() {
+		self.cchar = self.nchar;
+		self.nchar = match self.source.next_char() {
 			Some(c) => c,
-			None => {
-				self.eof_source = true;
-				'\0'
-			}
+			None => '\0',
 		};
 	}
 
-	fn is_eof_char(&self) -> bool {
-		self.cchar == '\0'
+	fn push_token(&mut self, token: Token) {
+		if token.typer.is(TokenType::EOF) {
+			self.eof = true
+		}
+		self.tokens_cache.push(token);
 	}
 
-	fn push_token_in_cache(&mut self, token: Token) {
-		self.tokens_cache.push(token);
+	fn make_token_and_push(
+		&mut self, typer: TokenType, position_start: Position, position_end: Position,
+	) {
+		self.push_token(Token::new(typer, TokenPosition::new(position_start, position_end)));
+	}
+
+	fn invalid_syntax_err(&self) -> ResultLexer {
+		let mut exception: Exception = Exception::not_runtime(Except::invalid_syntax(format!(
+			"invalid character '{}'",
+			self.cchar
+		)));
+		exception.push(ExceptionPoint::new(&self.module, self.position.copy()));
+		return Err(exception);
 	}
 
 	pub fn next(&mut self) -> Result<Token, Exception> {
@@ -64,54 +79,33 @@ impl Lexer {
 			return Ok(self.tokens_cache.remove(0));
 		}
 
-		if self.eof_source && self.is_eof_char() {
-			return Ok(Token::new(
-				TokenType::EOF,
-				TokenPosition::new(self.position.copy(), self.position.copy()),
-			));
+		if self.is_eof_char() {
+			self.make_token_and_push(TokenType::EOF, self.position.copy(), self.position.copy());
+			return self.next();
 		}
 
-		let result: Result<(), Exception> = match self.cchar {
-			c if c.is_whitespace() => self.whitespace(),
-			c if c.is_ascii_punctuation() => self.punctuations(),
-			c if c.is_digit(10) => self.number(),
-			c if c.is_alphabetic() => self.identifier_keyword(),
-			_ => {
-				let mut exception: Exception = Exception::new_not_runtime(Except::invalid_syntax(
-					format!("invalid character '{}'", &self.cchar),
-				));
-				exception.push(ExceptionPoint::new(
-					self.module.clone(),
-					self.position.copy(),
-				));
-				Err(exception)
-			}
+		match self.cchar {
+			c if c.is_whitespace() => self.lexe_whitespace()?,
+			c if c.is_ascii_punctuation() => self.lexe_punctuations()?,
+			c if c.is_digit(10) => self.lexe_number()?,
+			c if c == '_' || c.is_alphabetic() => self.lexe_identifier_keyword()?,
+			_ => self.invalid_syntax_err()?,
 		};
-
-		if let Err(exception) = result {
-			return Err(exception);
-		}
 
 		self.next()
 	}
 
 	pub fn run(&mut self) -> Result<Vec<Token>, Exception> {
 		let mut tokens: Vec<Token> = vec![];
-		let mut is_eof: bool = false;
 
 		loop {
-			if is_eof == true {
-				break;
-			}
+			tokens.push(self.next()?);
 
-			match self.next() {
-				Ok(token) => {
-					if token.typer.is(TokenType::EOF) {
-						is_eof = true;
-					}
-					tokens.push(token)
+			if self.is_eof_char() {
+				if !self.eof {
+					tokens.push(self.next()?);
 				}
-				Err(exception) => return Err(exception),
+				break;
 			}
 		}
 
