@@ -7,15 +7,9 @@ pub struct Position {
 }
 
 impl Position {
-	pub fn new(column: usize, line: usize) -> Self {
-		Self { column, line }
-	}
+	pub fn new(column: usize, line: usize) -> Self { Self { column, line } }
 
-	pub fn default() -> Self {
-		Self::new(0, 0)
-	}
+	pub fn default() -> Self { Self::new(0, 0) }
 
-	pub fn copy(&self) -> Self {
-		Self::new(self.column, self.line)
-	}
+	pub fn copy(&self) -> Self { Self::new(self.column, self.line) }
 }
