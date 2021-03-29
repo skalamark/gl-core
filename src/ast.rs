@@ -126,3 +126,69 @@ impl Precedence {
 		}
 	}
 }
+
+// Into Statement
+
+impl Into<Statement> for Expression {
+	fn into(self) -> Statement { Statement::Expression(self) }
+}
+
+impl Into<Statement> for Literal {
+	fn into(self) -> Statement { Statement::Expression(self.into()) }
+}
+
+// Into Expression
+
+impl Into<Expression> for Literal {
+	fn into(self) -> Expression { Expression::Literal(self) }
+}
+
+impl Into<Expression> for BigInt {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+impl Into<Expression> for BigRational {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+impl Into<Expression> for bool {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+impl Into<Expression> for String {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+impl Into<Expression> for Vec<Expression> {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+impl Into<Expression> for Vec<(Expression, Expression)> {
+	fn into(self) -> Expression { Expression::Literal(self.into()) }
+}
+
+// Into Literal
+
+impl Into<Literal> for BigInt {
+	fn into(self) -> Literal { Literal::Integer(self) }
+}
+
+impl Into<Literal> for BigRational {
+	fn into(self) -> Literal { Literal::Float(self) }
+}
+
+impl Into<Literal> for bool {
+	fn into(self) -> Literal { Literal::Boolean(self) }
+}
+
+impl Into<Literal> for String {
+	fn into(self) -> Literal { Literal::String(self) }
+}
+
+impl Into<Literal> for Vec<Expression> {
+	fn into(self) -> Literal { Literal::Vec(self) }
+}
+
+impl Into<Literal> for Vec<(Expression, Expression)> {
+	fn into(self) -> Literal { Literal::HashMap(self) }
+}
