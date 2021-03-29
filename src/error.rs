@@ -2,8 +2,6 @@
 
 use crate::preludes::*;
 
-pub type AnyError = anyhow::Error;
-
 #[derive(Debug)]
 pub struct Exception {
 	pub exception_points: Vec<ExceptionPoint>,
@@ -25,7 +23,10 @@ pub struct Except {
 
 #[derive(Debug)]
 pub enum ExceptType {
+	AttributeError,
 	Eof,
+	Error,
+	Import,
 	Index,
 	InvalidSyntax,
 	Key,
@@ -77,7 +78,10 @@ impl std::fmt::Display for Except {
 impl std::fmt::Display for ExceptType {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		match self {
+			ExceptType::AttributeError => write!(f, "AttributeError"),
 			ExceptType::Eof => write!(f, "EOFError"),
+			ExceptType::Error => write!(f, "Error"),
+			ExceptType::Import => write!(f, "ImportError"),
 			ExceptType::Index => write!(f, "IndexError"),
 			ExceptType::InvalidSyntax => write!(f, "InvalidSyntax"),
 			ExceptType::Key => write!(f, "KeyError"),
@@ -90,21 +94,13 @@ impl std::fmt::Display for ExceptType {
 }
 
 impl Exception {
-	pub fn new(except: Except, is_runtime: bool) -> Self {
-		Self {
-			exception_points: Vec::new(),
-			except,
-			is_runtime,
-		}
+	fn new(except: Except, is_runtime: bool) -> Self {
+		Self { exception_points: Vec::new(), except, is_runtime }
 	}
 
-	pub fn new_not_runtime(except: Except) -> Self {
-		Self::new(except, false)
-	}
+	pub fn not_runtime(except: Except) -> Self { Self::new(except, false) }
 
-	pub fn new_in_runtime(except: Except) -> Self {
-		Self::new(except, true)
-	}
+	pub fn in_runtime(except: Except) -> Self { Self::new(except, true) }
 
 	pub fn push(&mut self, exception_point: ExceptionPoint) {
 		self.exception_points.push(exception_point);
@@ -112,48 +108,43 @@ impl Exception {
 }
 
 impl ExceptionPoint {
-	pub fn new(module_context: String, position: Position) -> Self {
-		Self {
-			module_context,
-			position,
-		}
+	pub fn new<T: Into<String>>(module_context: T, position: Position) -> Self {
+		Self { module_context: module_context.into(), position }
 	}
 }
 
 impl Except {
-	fn custom(typer: ExceptType, message: String) -> Self {
-		Except { typer, message }
+	fn new<T: Into<String>>(typer: ExceptType, message: T) -> Self {
+		Except { typer, message: message.into() }
 	}
 
-	pub fn eof(message: String) -> Self {
-		Self::custom(ExceptType::Eof, message)
+	pub fn attribute<T: Into<String>>(message: T) -> Self {
+		Self::new(ExceptType::AttributeError, message)
 	}
 
-	pub fn invalid_syntax(message: String) -> Self {
-		Self::custom(ExceptType::InvalidSyntax, message)
+	pub fn eof<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Eof, message) }
+
+	pub fn error<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Error, message) }
+
+	pub fn import<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Import, message) }
+
+	pub fn invalid_syntax<T: Into<String>>(message: T) -> Self {
+		Self::new(ExceptType::InvalidSyntax, message)
 	}
 
-	pub fn index(message: String) -> Self {
-		Self::custom(ExceptType::Index, message)
+	pub fn index<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Index, message) }
+
+	pub fn key<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Key, message) }
+
+	pub fn keyboard_interrupt<T: Into<String>>(message: T) -> Self {
+		Self::new(ExceptType::KeyboardInterrupt, message)
 	}
 
-	pub fn key(message: String) -> Self {
-		Self::custom(ExceptType::Key, message)
-	}
+	pub fn name<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Name, message) }
 
-	pub fn keyboard_interrupt(message: String) -> Self {
-		Self::custom(ExceptType::KeyboardInterrupt, message)
-	}
+	pub fn type_<T: Into<String>>(message: T) -> Self { Self::new(ExceptType::Type, message) }
 
-	pub fn name(message: String) -> Self {
-		Self::custom(ExceptType::Name, message)
-	}
-
-	pub fn type_(message: String) -> Self {
-		Self::custom(ExceptType::Type, message)
-	}
-
-	pub fn unexpected_eof(message: String) -> Self {
-		Self::custom(ExceptType::UnexpectedEOF, message)
+	pub fn unexpected_eof<T: Into<String>>(message: T) -> Self {
+		Self::new(ExceptType::UnexpectedEOF, message)
 	}
 }
