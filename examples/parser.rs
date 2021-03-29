@@ -2,19 +2,15 @@
 
 extern crate gl_core;
 
-use gl_core::ast::AbstractSyntaxTree;
-use gl_core::error::Exception;
-use gl_core::lexer::Lexer;
-use gl_core::parser::Parser;
-use gl_core::source::Source;
+use gl_core::preludes::*;
 
 fn main() {
-	let source: Source = Source::from_string(format!("42")).unwrap();
-	let module: String = format!("examples/lexer");
-	let lexer: Lexer = Lexer::new(source, &module);
-	let mut parser: Parser = Parser::new(lexer);
+	let source: Source = Source::from_string("42");
+	let module: &str = "examples/lexer";
+	let lexer: Lexer = Lexer::new(source, module);
+	let parser: Result<Parser, Exception> = Parser::new(lexer);
 
-	let rast: Result<AbstractSyntaxTree, Exception> = parser.run();
+	let rast: Result<AbstractSyntaxTree, Exception> = parser.unwrap().run();
 	assert_eq!(false, rast.is_err());
 
 	let _ast: AbstractSyntaxTree = rast.unwrap();

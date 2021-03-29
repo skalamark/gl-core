@@ -2,9 +2,8 @@
 
 extern crate gl_core;
 
-use gl_core::state::{EnvState, ProgramState};
+use gl_core::preludes::*;
 
 fn main() {
-	let _program_state: ProgramState = ProgramState::new();
-	let _env_state: EnvState = EnvState::new();
+	let _program_state: ProgramState = ProgramState::new("examples/state/program_state_new");
 }
