@@ -4,42 +4,32 @@ use crate::lexer::ResultLexer;
 use crate::preludes::*;
 
 impl Lexer {
-	pub fn number(&mut self) -> ResultLexer {
+	pub fn lexe_number(&mut self) -> ResultLexer {
 		let position_start: Position = self.position.copy();
 		let mut number_literal: String = String::new();
 		let mut dot: bool = false;
 
 		while !self.is_eof_char() && (self.cchar.is_digit(10) || self.cchar == '.') {
 			if self.cchar == '.' {
-				if !dot {
-					dot = true
-				} else {
-					let mut exception: Exception = Exception::new_not_runtime(
-						Except::invalid_syntax(format!("invalid character '{}'", &self.cchar)),
-					);
-					exception.push(ExceptionPoint::new(
-						self.module.clone(),
-						self.position.copy(),
-					));
-					return Err(exception);
+				if dot {
+					return self.invalid_syntax_err();
 				}
+				dot = true;
 			}
 
 			number_literal.push(self.cchar);
 			self.next_char();
 		}
 
-		if !dot {
-			self.push_token_in_cache(Token::new(
-				TokenType::INTEGER(number_literal),
-				TokenPosition::new(position_start, self.position.copy()),
-			));
-		} else {
-			self.push_token_in_cache(Token::new(
-				TokenType::FLOAT(number_literal),
-				TokenPosition::new(position_start, self.position.copy()),
-			));
-		}
+		self.make_token_and_push(
+			if !dot {
+				TokenType::INTEGER(number_literal)
+			} else {
+				TokenType::FLOAT(number_literal)
+			},
+			position_start,
+			self.position.copy(),
+		);
 
 		Ok(())
 	}
