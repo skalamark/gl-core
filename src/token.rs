@@ -51,6 +51,7 @@ pub enum TokenType {
 	COMMA,        // ,
 	SEMICOLON,    // ;
 	COLON,        // :
+	DCOLON,       // ::
 	LeftParen,    // (
 	RightParen,   // )
 	LeftBracket,  // [
@@ -60,35 +61,21 @@ pub enum TokenType {
 }
 
 impl Token {
-	pub fn new(typer: TokenType, position: TokenPosition) -> Self {
-		Self { typer, position }
-	}
+	pub fn new(typer: TokenType, position: TokenPosition) -> Self { Self { typer, position } }
 
-	pub fn default() -> Self {
-		Self::new(TokenType::EOF, TokenPosition::default())
-	}
+	pub fn default() -> Self { Self::new(TokenType::EOF, TokenPosition::default()) }
 
-	pub fn copy(&self) -> Self {
-		Self::new(self.typer.clone(), self.position.copy())
-	}
+	pub fn copy(&self) -> Self { Self::new(self.typer.clone(), self.position.copy()) }
 }
 
 impl TokenPosition {
-	pub fn new(start: Position, end: Position) -> Self {
-		Self { start, end }
-	}
+	pub fn new(start: Position, end: Position) -> Self { Self { start, end } }
 
-	pub fn default() -> Self {
-		Self::new(Position::default(), Position::default())
-	}
+	pub fn default() -> Self { Self::new(Position::default(), Position::default()) }
 
-	pub fn copy(&self) -> Self {
-		Self::new(self.start.copy(), self.end.copy())
-	}
+	pub fn copy(&self) -> Self { Self::new(self.start.copy(), self.end.copy()) }
 }
 
 impl TokenType {
-	pub fn is(&self, other: Self) -> bool {
-		self == &other
-	}
+	pub fn is(&self, other: Self) -> bool { self == &other }
 }
