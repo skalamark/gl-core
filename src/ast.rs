@@ -15,11 +15,7 @@ pub enum Statement {
 	Let(String, Expression),
 	Expression(Expression),
 	ExpressionReturn(Expression),
-	Fn {
-		name: String,
-		params: Vec<String>,
-		body: Block,
-	},
+	Fn { name: String, params: Vec<String>, body: Block },
 	Import(String),
 }
 
@@ -29,14 +25,9 @@ pub enum Expression {
 	Literal(Literal),
 	Prefix(Prefix, Box<Expression>),
 	Infix(Infix, Box<Expression>, Box<Expression>),
-	Fn {
-		params: Vec<String>,
-		body: Block,
-	},
-	Call {
-		function: Box<Expression>,
-		arguments: Vec<Expression>,
-	},
+	Fn { params: Vec<String>, body: Block },
+	Call { function: Box<Expression>, arguments: Vec<Expression> },
+	Index(Box<Expression>, Box<Expression>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -52,9 +43,9 @@ pub enum Literal {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Prefix {
+	Not,   // !
 	Plus,  // +
 	Minus, // -
-	Not,   // !
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -65,30 +56,30 @@ pub enum Infix {
 	Divide,           // /
 	Equal,            // ==
 	NotEqual,         // !=
-	GreaterThanEqual, // >=
-	GreaterThan,      // >
 	LessThanEqual,    // <=
 	LessThan,         // <
+	GreaterThanEqual, // >=
+	GreaterThan,      // >
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Precedence {
 	Lowest,
-	Equals,      // == or !=
-	LessGreater, // > or < or >= or <=
-	Sum,         // + or -
-	Product,     // * or /
-	Prefix,      // +X or -X or !X
-	Call,        // function(x)
-	Index,       // vec[index] or hashmap[key]
+	Comma,          // ,
+	Equality,       // == or !=
+	Relational,     // > or < or >= or <=
+	Additive,       // + or -
+	Multiplicative, // / or *
+	Call,           // function(x)
+	Index,          // vec[index] or hashmap[key]
 }
 
 impl std::fmt::Display for Prefix {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		match self {
+			Prefix::Not => write!(f, "!"),
 			Prefix::Plus => write!(f, "+"),
 			Prefix::Minus => write!(f, "-"),
-			Prefix::Not => write!(f, "!"),
 		}
 	}
 }
@@ -98,44 +89,39 @@ impl std::fmt::Display for Infix {
 		match self {
 			Infix::Plus => write!(f, "+"),
 			Infix::Minus => write!(f, "-"),
-			Infix::Divide => write!(f, "/"),
 			Infix::Multiply => write!(f, "*"),
+			Infix::Divide => write!(f, "/"),
 			Infix::Equal => write!(f, "=="),
 			Infix::NotEqual => write!(f, "!="),
-			Infix::GreaterThanEqual => write!(f, ">="),
-			Infix::GreaterThan => write!(f, ">"),
 			Infix::LessThanEqual => write!(f, "<="),
 			Infix::LessThan => write!(f, "<"),
+			Infix::GreaterThanEqual => write!(f, ">="),
+			Infix::GreaterThan => write!(f, ">"),
 		}
 	}
 }
 
 impl AbstractSyntaxTree {
-	pub fn new() -> Self {
-		Self {
-			statements: Vec::new(),
-		}
-	}
+	pub fn new() -> Self { Self { statements: Vec::new() } }
 
-	pub fn push(&mut self, statement: Statement) {
-		self.statements.push(statement);
-	}
+	pub fn push(&mut self, statement: Statement) { self.statements.push(statement); }
 }
 
 impl Precedence {
-	pub fn from_token(token: &Token) -> Self {
-		Self::from_token_type(&token.typer)
-	}
+	pub fn from_token(token: &Token) -> Self { Self::from_token_type(&token.typer) }
 
 	pub fn from_token_type(token_type: &TokenType) -> Self {
 		match token_type {
-			TokenType::EQUAL | TokenType::NotEqual => Precedence::Equals,
-			TokenType::LessThan | TokenType::LessThanEqual => Precedence::LessGreater,
-			TokenType::GreaterThan | TokenType::GreaterThanEqual => Precedence::LessGreater,
-			TokenType::PLUS | TokenType::MINUS => Precedence::Sum,
-			TokenType::ASTERISK | TokenType::SLASH => Precedence::Product,
-			TokenType::LeftBracket => Precedence::Index,
+			TokenType::COMMA => Precedence::Comma,
+			TokenType::EQUAL | TokenType::NotEqual => Precedence::Equality,
+			TokenType::LessThan
+			| TokenType::LessThanEqual
+			| TokenType::GreaterThan
+			| TokenType::GreaterThanEqual => Precedence::Relational,
+			TokenType::PLUS | TokenType::MINUS => Precedence::Additive,
+			TokenType::ASTERISK | TokenType::SLASH => Precedence::Multiplicative,
 			TokenType::LeftParen => Precedence::Call,
+			TokenType::LeftBracket => Precedence::Index,
 			_ => Precedence::Lowest,
 		}
 	}
