@@ -4,73 +4,35 @@ use crate::lexer::ResultLexer;
 use crate::preludes::*;
 
 impl Lexer {
-	pub fn punctuations(&mut self) -> ResultLexer {
+	pub fn lexe_punctuations(&mut self) -> ResultLexer {
 		let position_start: Position = self.position.copy();
 
 		if self.cchar == '"' {
-			return self.string();
+			return self.lexe_string();
 		} else if self.operators() {
 			return Ok(());
 		}
 
 		let token_type: TokenType = match self.cchar {
-			c if c == '.' => {
+			c if c == '.' => TokenType::DOT,
+			c if c == ',' => TokenType::COMMA,
+			c if c == ';' => TokenType::SEMICOLON,
+			c if c == ':' && self.nchar == ':' => {
 				self.next_char();
-				TokenType::DOT
-			}
-			c if c == ',' => {
-				self.next_char();
-				TokenType::COMMA
-			}
-			c if c == ';' => {
-				self.next_char();
-				TokenType::SEMICOLON
-			}
-			c if c == ':' => {
-				self.next_char();
-				TokenType::COLON
-			}
-			c if c == '(' => {
-				self.next_char();
-				TokenType::LeftParen
-			}
-			c if c == ')' => {
-				self.next_char();
-				TokenType::RightParen
-			}
-			c if c == '[' => {
-				self.next_char();
-				TokenType::LeftBracket
-			}
-			c if c == ']' => {
-				self.next_char();
-				TokenType::RightBracket
-			}
-			c if c == '{' => {
-				self.next_char();
-				TokenType::LeftBrace
-			}
-			c if c == '}' => {
-				self.next_char();
-				TokenType::RightBrace
-			}
-			_ => {
-				let mut exception: Exception = Exception::new_not_runtime(Except::invalid_syntax(
-					format!("invalid character '{}'", &self.cchar),
-				));
-				exception.push(ExceptionPoint::new(
-					self.module.clone(),
-					self.position.copy(),
-				));
-				return Err(exception);
-			}
+				TokenType::DCOLON
+			},
+			c if c == ':' => TokenType::COLON,
+			c if c == '(' => TokenType::LeftParen,
+			c if c == ')' => TokenType::RightParen,
+			c if c == '[' => TokenType::LeftBracket,
+			c if c == ']' => TokenType::RightBracket,
+			c if c == '{' => TokenType::LeftBrace,
+			c if c == '}' => TokenType::RightBrace,
+			_ => return self.invalid_syntax_err(),
 		};
 
-		self.push_token_in_cache(Token::new(
-			token_type,
-			TokenPosition::new(position_start, self.position.copy()),
-		));
-
+		self.next_char();
+		self.make_token_and_push(token_type, position_start, self.position.copy());
 		Ok(())
 	}
 
@@ -78,66 +40,35 @@ impl Lexer {
 		let position_start: Position = self.position.copy();
 
 		let token_type: TokenType = match self.cchar {
-			c if c == '+' => {
+			c if c == '+' => TokenType::PLUS,
+			c if c == '-' => TokenType::MINUS,
+			c if c == '*' => TokenType::ASTERISK,
+			c if c == '/' => TokenType::SLASH,
+			c if c == '=' && self.nchar == '=' => {
 				self.next_char();
-				TokenType::PLUS
-			}
-			c if c == '-' => {
+				TokenType::EQUAL
+			},
+			c if c == '=' => TokenType::ASSIGN,
+			c if c == '!' && self.nchar == '=' => {
 				self.next_char();
-				TokenType::MINUS
-			}
-			c if c == '*' => {
+				TokenType::NotEqual
+			},
+			c if c == '!' => TokenType::BANG,
+			c if c == '<' && self.nchar == '=' => {
 				self.next_char();
-				TokenType::ASTERISK
-			}
-			c if c == '/' => {
+				TokenType::LessThanEqual
+			},
+			c if c == '<' => TokenType::LessThan,
+			c if c == '>' && self.nchar == '=' => {
 				self.next_char();
-				TokenType::SLASH
-			}
-			c if c == '=' => {
-				self.next_char();
-				if self.cchar == '=' {
-					self.next_char();
-					TokenType::EQUAL
-				} else {
-					TokenType::ASSIGN
-				}
-			}
-			c if c == '!' => {
-				self.next_char();
-				if self.cchar == '=' {
-					self.next_char();
-					TokenType::NotEqual
-				} else {
-					TokenType::BANG
-				}
-			}
-			c if c == '>' => {
-				self.next_char();
-				if self.cchar == '=' {
-					self.next_char();
-					TokenType::GreaterThanEqual
-				} else {
-					TokenType::GreaterThan
-				}
-			}
-			c if c == '<' => {
-				self.next_char();
-				if self.cchar == '=' {
-					self.next_char();
-					TokenType::LessThanEqual
-				} else {
-					TokenType::LessThan
-				}
-			}
+				TokenType::GreaterThanEqual
+			},
+			c if c == '>' => TokenType::GreaterThan,
 			_ => return false,
 		};
 
-		self.push_token_in_cache(Token::new(
-			token_type,
-			TokenPosition::new(position_start, self.position.copy()),
-		));
-
+		self.next_char();
+		self.make_token_and_push(token_type, position_start, self.position.copy());
 		true
 	}
 }
