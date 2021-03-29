@@ -4,7 +4,7 @@ use crate::lexer::ResultLexer;
 use crate::preludes::*;
 
 impl Lexer {
-	pub fn identifier_keyword(&mut self) -> ResultLexer {
+	pub fn lexe_identifier_keyword(&mut self) -> ResultLexer {
 		let position_start: Position = self.position.copy();
 		let mut identifier_literal: String = String::new();
 
@@ -25,11 +25,7 @@ impl Lexer {
 			identifier => TokenType::IDENTIFIER(identifier),
 		};
 
-		self.push_token_in_cache(Token::new(
-			token_type,
-			TokenPosition::new(position_start, self.position.copy()),
-		));
-
+		self.make_token_and_push(token_type, position_start, self.position.copy());
 		Ok(())
 	}
 }
