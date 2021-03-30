@@ -3,38 +3,28 @@
 use crate::preludes::*;
 
 impl Parser {
-	pub fn parse_call(&mut self, function: Expression) -> Result<Expression, Exception> {
+	pub fn parse_call(&mut self, left: Expression) -> Result<Expression, Exception> {
 		self.next_token(true)?; // LeftParen
 		let mut arguments: Vec<Expression> = Vec::new();
 
 		while !self.ctoken.typer.is(TokenType::RightParen) {
-			let expression: Expression = self.parse_expression(Precedence::Lowest)?;
-			arguments.push(expression);
+			arguments.push(self.parse_expression(Precedence::Comma)?);
 			self.next_while_newline()?;
 
 			match &self.ctoken.typer {
 				TokenType::COMMA => self.next_token(true)?,
-				TokenType::RightParen => {}
+				TokenType::RightParen => {},
 				_ => {
-					let mut exception: Exception = Exception::new(
-						Except::invalid_syntax(format!("expected ',' or ')'")),
-						false,
-					);
-
-					exception.push(ExceptionPoint::new(
-						self.module.clone(),
-						self.ctoken.position.start.copy(),
-					));
-
+					let mut exception: Exception =
+						Exception::not_runtime(Except::invalid_syntax("expected ',' or ')'"));
+					exception
+						.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
 					return Err(exception);
-				}
+				},
 			}
 		}
 
 		self.next_token(false)?; // RightParen
-		Ok(Expression::Call {
-			function: Box::new(function),
-			arguments,
-		})
+		Ok(Expression::Call { function: Box::new(left), arguments })
 	}
 }

@@ -6,39 +6,25 @@ impl Parser {
 	pub fn parse_let(&mut self) -> Result<Statement, Exception> {
 		self.next_token(true)?; // LET
 
-		let name: String = match self.ctoken.typer.clone() {
-			TokenType::IDENTIFIER(name) => name,
-			_ => {
-				let mut exception: Exception = Exception::new(
-					Except::invalid_syntax(format!("expected identifier'")),
-					false,
-				);
+		if let TokenType::IDENTIFIER(name) = self.ctoken.typer.clone() {
+			self.next_token(true)?; // IDENTIFIER
 
-				exception.push(ExceptionPoint::new(
-					self.module.clone(),
-					self.ctoken.position.start.copy(),
-				));
+			if self.ctoken.typer.is(TokenType::ASSIGN) {
+				self.next_token(true)?; // ASSIGN
 
-				return Err(exception);
+				let value: Expression = self.parse_expression(Precedence::Lowest)?;
+				return Ok(Statement::Let(name, value));
 			}
-		};
 
-		self.next_token(true)?; // IDENTIFIER
-
-		if !self.ctoken.typer.is(TokenType::ASSIGN) {
 			let mut exception: Exception =
-				Exception::new(Except::invalid_syntax(format!("expected '='")), false);
-
-			exception.push(ExceptionPoint::new(
-				self.module.clone(),
-				self.ctoken.position.start.copy(),
-			));
-
+				Exception::not_runtime(Except::invalid_syntax("expected '='"));
+			exception.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
 			return Err(exception);
 		}
 
-		self.next_token(true)?; // ASSIGN
-		let value: Expression = self.parse_expression(Precedence::Lowest)?;
-		Ok(Statement::Let(name, value))
+		let mut exception: Exception =
+			Exception::not_runtime(Except::invalid_syntax("expected identifier"));
+		exception.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
+		Err(exception)
 	}
 }

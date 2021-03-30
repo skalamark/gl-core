@@ -10,12 +10,10 @@ impl Parser {
 			TokenType::BANG => prefix = Prefix::Not,
 			TokenType::PLUS => prefix = Prefix::Plus,
 			TokenType::MINUS => prefix = Prefix::Minus,
-			_ => {}
+			_ => {},
 		};
 
 		self.next_token(true)?; // BANG or PLUS or MINUS
-		let prefix_expression: Expression = self.parse_expression(Precedence::Prefix)?;
-
-		Ok(Expression::Prefix(prefix, Box::new(prefix_expression)))
+		Ok(Expression::Prefix(prefix, Box::new(self.parse_expression(Precedence::Lowest)?)))
 	}
 }

@@ -17,17 +17,11 @@ impl Parser {
 			TokenType::LessThanEqual => infix = Infix::LessThanEqual,
 			TokenType::GreaterThan => infix = Infix::GreaterThan,
 			TokenType::GreaterThanEqual => infix = Infix::GreaterThanEqual,
-			_ => {}
+			_ => {},
 		};
 
 		let precedence: Precedence = Precedence::from_token(&self.ctoken);
 		self.next_token(true)?;
-		let infix_expression: Expression = self.parse_expression(precedence)?;
-
-		Ok(Expression::Infix(
-			infix,
-			Box::new(left),
-			Box::new(infix_expression),
-		))
+		Ok(Expression::Infix(infix, Box::new(left), Box::new(self.parse_expression(precedence)?)))
 	}
 }

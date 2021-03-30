@@ -6,22 +6,14 @@ impl Parser {
 	pub fn parse_import(&mut self) -> Result<Statement, Exception> {
 		self.next_token(true)?; // IMPORT
 
-		let name: String = match self.ctoken.typer.clone() {
-			TokenType::STRING(name) => name,
-			_ => {
-				let mut exception: Exception =
-					Exception::new(Except::invalid_syntax(format!("expected string")), false);
+		if let TokenType::STRING(name) = self.ctoken.typer.clone() {
+			self.next_token(true)?; // STRING
+			return Ok(Statement::Import(name));
+		}
 
-				exception.push(ExceptionPoint::new(
-					self.module.clone(),
-					self.ctoken.position.start.copy(),
-				));
-
-				return Err(exception);
-			}
-		};
-
-		self.next_token(true)?; // STRING
-		Ok(Statement::Import(name))
+		let mut exception: Exception =
+			Exception::not_runtime(Except::invalid_syntax("expected string"));
+		exception.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
+		Err(exception)
 	}
 }

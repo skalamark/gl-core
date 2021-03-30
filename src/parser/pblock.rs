@@ -6,36 +6,30 @@ impl Parser {
 	pub fn parse_block(&mut self) -> Result<Block, Exception> {
 		let mut block: AbstractSyntaxTree = AbstractSyntaxTree::new();
 
-		if !self.ctoken.typer.is(TokenType::LeftBrace) {
-			let mut exception: Exception =
-				Exception::new(Except::invalid_syntax(format!("expected '{{'")), false);
+		if self.ctoken.typer.is(TokenType::LeftBrace) {
+			self.next_token(true)?; // LeftBrace
 
-			exception.push(ExceptionPoint::new(
-				self.module.clone(),
-				self.ctoken.position.start.copy(),
-			));
+			while !self.ctoken.typer.is(TokenType::RightBrace) {
+				let mut statement: Statement = self.parse_statement(false)?;
 
-			return Err(exception);
-		}
-		self.next_token(true)?; // LeftBrace
-
-		while !self.ctoken.typer.is(TokenType::RightBrace) {
-			block.push(self.statement(false)?);
-
-			let is_eof: bool = self.ctoken.typer.is(TokenType::RightBrace);
-
-			if is_eof {
-				let last_statement: Statement = block.statements.remove(block.statements.len() - 1);
-				if let Statement::Expression(expression) = last_statement {
-					block.push(Statement::ExpressionReturn(expression));
+				if self.ctoken.typer.is(TokenType::RightBrace) {
+					if let Statement::Expression(expression) = statement {
+						statement = Statement::ExpressionReturn(expression);
+					}
+				} else {
+					statement = self.parse_statement_final(statement)?;
 				}
-			} else {
-				let last_statement: Statement = block.statements.remove(block.statements.len() - 1);
-				block.push(self.parse_statement_final(last_statement)?);
+
+				block.push(statement)
 			}
+
+			self.next_token(false)?; // RightBrace
+			return Ok(Block(block.statements));
 		}
 
-		self.next_token(false)?; // RightBrace
-		Ok(Block(block.statements))
+		let mut exception: Exception =
+			Exception::not_runtime(Except::invalid_syntax("expected '{{'"));
+		exception.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
+		Err(exception)
 	}
 }
