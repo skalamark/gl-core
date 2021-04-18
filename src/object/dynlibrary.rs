@@ -4,40 +4,40 @@ use libloading::Library;
 
 use crate::preludes::*;
 
-#[derive(Debug)]
 pub struct ModuleDynLibrary {
 	name: String,
 	path: String,
-	dynlibrary: Library,
-	functions: HashMap<String, FnRust>,
+	dynlibrary: Rc<RefCell<Library>>,
+	env: Rc<RefCell<Env>>,
 }
 
 impl ModuleDynLibrary {
 	pub fn new<T: Into<String>>(
-		name: T, path: T, dynlibrary: Library, functions: HashMap<String, FnRust>,
+		name: T, path: T, dynlibrary: Rc<RefCell<Library>>, env: Rc<RefCell<Env>>,
 	) -> Self {
-		Self { name: name.into(), path: path.into(), dynlibrary, functions }
+		Self { name: name.into(), path: path.into(), dynlibrary, env }
 	}
 
 	pub fn get_name(&self) -> String { self.name.clone() }
 
 	pub fn get_path(&self) -> String { self.path.clone() }
 
-	pub fn get_function<T: Into<String>>(&mut self, name: T) -> Result<FnRust, libloading::Error> {
+	pub fn get_attr<T: Into<String>>(&self, name: T) -> Result<Object, libloading::Error> {
 		let name: String = name.into();
+		let attr = self.env.borrow().get(&name);
 
-		match self.functions.get(&name) {
-			Some(function) => Ok(function.clone()),
+		match attr {
+			Some(attr) => return Ok(attr),
 			None => unsafe {
-				match self.dynlibrary.get::<FnRust>(name.as_bytes()) {
-					Ok(function) => {
-						self.functions.insert(name.clone(), *function);
-						return self.get_function(name.clone());
-					},
-					Err(err) => {
-						return Err(err);
-					},
-				}
+				self.env.borrow_mut().set(
+					&name,
+					Object::FnRust(
+						Some(name.clone()),
+						-1,
+						*self.dynlibrary.borrow().get::<FnRust>(name.as_bytes())?,
+					),
+				);
+				return self.get_attr(&name);
 			},
 		}
 	}
@@ -48,8 +48,8 @@ impl Clone for ModuleDynLibrary {
 		Self {
 			name: self.name.clone(),
 			path: self.path.clone(),
-			dynlibrary: unsafe { Library::new(self.path.clone()).unwrap() },
-			functions: self.functions.clone(),
+			dynlibrary: self.dynlibrary.clone(),
+			env: self.env.clone(),
 		}
 	}
 }
