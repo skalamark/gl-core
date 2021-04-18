@@ -13,7 +13,7 @@ mod structrust;
 pub type FnRust = fn(Vec<Object>) -> Result<Object, Exception>;
 pub type FNStructRust = fn(Box<dyn ObjectTrait>, Vec<Object>) -> Result<Object, Exception>;
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum Object {
 	Null,
 	Integer(BigInt),
@@ -119,7 +119,7 @@ impl std::fmt::Display for Object {
 				write!(f, "<module '{}'>", name)
 			},
 			Object::StructRust(s) => {
-				write!(f, "{}", &s.o)
+				write!(f, "{}", s)
 			},
 		}
 	}
