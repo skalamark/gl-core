@@ -39,7 +39,7 @@ impl Parser {
 			},
 			TokenType::BANG | TokenType::PLUS | TokenType::MINUS => self.parse_prefix()?,
 			TokenType::FN => self.parse_function_anonymous()?,
-			TokenType::LeftParen => unimplemented!(),
+			TokenType::LeftParen => self.parse_tuple(None)?,
 			TokenType::LeftBracket => Expression::Literal(self.parse_vec()?),
 			TokenType::LeftBrace => Expression::Literal(self.parse_hashmap()?),
 			_ => {
