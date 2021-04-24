@@ -21,8 +21,8 @@ pub enum Object {
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Object>),
+	Tuple(Vec<Object>),
 	HashMap(HashMap<Object, Object>),
-	Grouping(Vec<Object>),
 	Builtin(String, i32, FnRust),
 	Fn(Option<String>, Vec<String>, Block),
 	FnRust(Option<String>, i32, FnRust),
@@ -40,8 +40,8 @@ impl Object {
 			Object::Boolean(_) => "Boolean",
 			Object::String(_) => "String",
 			Object::Vec(_) => "Vec",
+			Object::Tuple(_) => "Tuple",
 			Object::HashMap(_) => "HashMap",
-			Object::Grouping(_) => "Grouping",
 			Object::Builtin(..) => "Builtin",
 			Object::Fn(..) => "Fn",
 			Object::FnRust(..) => "Fn",
@@ -70,6 +70,16 @@ impl std::fmt::Display for Object {
 				}
 				write!(f, "[{}]", fmt_string)
 			},
+			Object::Tuple(values) => {
+				let mut fmt_string: String = String::new();
+				for (i, object) in values.iter().enumerate() {
+					fmt_string.push_str(&format!("{}", object));
+					if i < values.len() - 1 {
+						fmt_string.push_str(", ");
+					}
+				}
+				write!(f, "({})", fmt_string)
+			},
 			Object::HashMap(hashmap) => {
 				let mut fmt_string: String = String::new();
 				for (i, (key, value)) in hashmap.iter().enumerate() {
@@ -79,16 +89,6 @@ impl std::fmt::Display for Object {
 					}
 				}
 				write!(f, "{{{}}}", fmt_string)
-			},
-			Object::Grouping(values) => {
-				let mut fmt_string: String = String::new();
-				for (i, object) in values.iter().enumerate() {
-					fmt_string.push_str(&format!("{}", object));
-					if i < values.len() - 1 {
-						fmt_string.push_str(", ");
-					}
-				}
-				write!(f, "({})", fmt_string)
 			},
 			Object::Builtin(name, ..) => write!(f, "<built-in function {}>", name),
 			Object::Fn(name, params, _) => {
@@ -135,7 +135,7 @@ impl Hash for Object {
 			Object::Boolean(ref b) => b.hash(state),
 			Object::String(ref s) => s.hash(state),
 			Object::Vec(ref v) => v.hash(state),
-			Object::Grouping(ref g) => g.hash(state),
+			Object::Tuple(ref t) => t.hash(state),
 			Object::Builtin(ref b, ..) => b.hash(state),
 			Object::ModuleRust(ref m, ..) => m.hash(state),
 			Object::ModuleDynLibrary(ref m) => m.get_path().hash(state),
@@ -153,8 +153,8 @@ impl Clone for Object {
 			Object::Boolean(b) => Object::Boolean(b.clone()),
 			Object::String(s) => Object::String(s.clone()),
 			Object::Vec(v) => Object::Vec(v.clone()),
+			Object::Tuple(t) => Object::Tuple(t.clone()),
 			Object::HashMap(h) => Object::HashMap(h.clone()),
-			Object::Grouping(g) => Object::Grouping(g.clone()),
 			Object::Builtin(name, len_args, func) =>
 				Object::Builtin(name.clone(), len_args.clone(), func.clone()),
 			Object::Fn(name, params, body) =>
