@@ -10,7 +10,7 @@ impl Parser {
 		// infix
 		while precedence < Precedence::from_token(&self.ctoken) {
 			left = match &self.ctoken.typer {
-				TokenType::COMMA => unimplemented!(),
+				TokenType::COMMA => self.parse_tuple(Some(left))?,
 				TokenType::PLUS
 				| TokenType::MINUS
 				| TokenType::ASTERISK
