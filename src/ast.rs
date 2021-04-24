@@ -38,6 +38,7 @@ pub enum Literal {
 	Boolean(bool),
 	String(String),
 	Vec(Vec<Expression>),
+	Tuple(Vec<Expression>),
 	HashMap(Vec<(Expression, Expression)>),
 }
 
