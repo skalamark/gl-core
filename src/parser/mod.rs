@@ -15,6 +15,7 @@ mod plet;
 mod pnumber;
 mod pprefix;
 mod pstatement;
+mod ptuple;
 mod pvec;
 
 pub struct Parser {
