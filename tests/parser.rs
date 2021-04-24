@@ -143,6 +143,27 @@ fn run_vec() {
 }
 
 #[test]
+fn run_tuple() {
+	let source: Source = Source::from_string("(\"text\", 42, null)");
+	let module: &str = "tests/parser/vec";
+	let lexer: Lexer = Lexer::new(source, module);
+	let rparser: Result<Parser, Exception> = Parser::new(lexer);
+	assert_eq!(false, rparser.is_err());
+
+	let expected_ast: AbstractSyntaxTree = vec_statements2ast(vec![Statement::ExpressionReturn(
+		Expression::Literal(Literal::Tuple(vec![
+			Expression::Literal(format!("text").into()),
+			42.to_bigint().unwrap().into(),
+			Expression::Literal(Literal::Null),
+		])),
+	)]);
+	let rast: Result<AbstractSyntaxTree, Exception> = rparser.unwrap().run();
+
+	assert_eq!(false, rast.is_err());
+	assert_eq!(expected_ast, rast.unwrap());
+}
+
+#[test]
 fn run_hashmap() {
 	let source: Source = Source::from_string("{\"text\": \"Hello\", 42: \"age\"}");
 	let module: &str = "tests/parser/hashmap";

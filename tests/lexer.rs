@@ -152,6 +152,26 @@ fn run_vec() {
 }
 
 #[test]
+fn run_tuple() {
+	let source: Source = Source::from_string("(42, \"Hello World\")");
+	let module: &str = "tests/lexer/vec";
+	let mut lexer: Lexer = Lexer::new(source, module);
+
+	let expected_tokens: Vec<Token> = vec_tokens_positions2vec_token(vec![
+		(LeftParen, (0, 0), (1, 0)),
+		(INTEGER(format!("42")), (1, 0), (3, 0)),
+		(COMMA, (3, 0), (4, 0)),
+		(STRING(format!("Hello World")), (5, 0), (18, 0)),
+		(RightParen, (18, 0), (19, 0)),
+		(EOF, (19, 0), (19, 0)),
+	]);
+	let rtokens: Result<Vec<Token>, Exception> = lexer.run();
+
+	assert_eq!(false, rtokens.is_err());
+	assert_eq!(expected_tokens, rtokens.unwrap())
+}
+
+#[test]
 fn run_hashmap() {
 	let source: Source = Source::from_string("{\"name\": \"José\", \"age\": 17}");
 	let module: &str = "tests/lexer/hashmap";
