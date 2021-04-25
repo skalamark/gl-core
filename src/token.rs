@@ -16,9 +16,11 @@ pub struct TokenPosition {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
-	EOF,         // \0
-	NEWLINE,     // \n
-	CommentLine, // //
+	EOF,               // \0
+	NEWLINE,           // \n
+	CommentLine,       // //
+	CommentBlockOpen,  // /*
+	CommentBlockClose, // */
 
 	// identifier and literals
 	IDENTIFIER(String),

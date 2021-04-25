@@ -11,6 +11,24 @@ impl Parser {
 				self.next_newline()?;
 				return Ok(Statement::Expression(Expression::Literal(Literal::Null)));
 			},
+			TokenType::CommentBlockOpen => {
+				while !self.ctoken.typer.is(TokenType::CommentBlockClose)
+					&& !self.ctoken.typer.is(TokenType::EOF)
+				{
+					self.next_token(false)?;
+				}
+
+				if self.ctoken.typer.is(TokenType::EOF) {
+					let mut exception: Exception =
+						Exception::not_runtime(Except::invalid_syntax("unexpected EOF"));
+					exception
+						.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
+					return Err(exception);
+				}
+
+				self.next_token(true)?; // CommentBlockClose
+				return Ok(Statement::Expression(Expression::Literal(Literal::Null)));
+			},
 			TokenType::LET => self.parse_let()?,
 			TokenType::FN if self.is_fn_statement_anonymous()? == "statement" =>
 				self.parse_function()?,

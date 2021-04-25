@@ -42,10 +42,18 @@ impl Lexer {
 		let token_type: TokenType = match self.cchar {
 			c if c == '+' => TokenType::PLUS,
 			c if c == '-' => TokenType::MINUS,
+			c if c == '*' && self.nchar == '/' => {
+				self.next_char();
+				TokenType::CommentBlockClose
+			},
 			c if c == '*' => TokenType::ASTERISK,
 			c if c == '/' && self.nchar == '/' => {
 				self.next_char();
 				TokenType::CommentLine
+			},
+			c if c == '/' && self.nchar == '*' => {
+				self.next_char();
+				TokenType::CommentBlockOpen
 			},
 			c if c == '/' => TokenType::SLASH,
 			c if c == '=' && self.nchar == '=' => {
