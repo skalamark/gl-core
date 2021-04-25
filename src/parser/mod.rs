@@ -60,6 +60,14 @@ impl Parser {
 
 	fn next_token_from_lexer(&mut self) -> Result<Token, Exception> { self.lexer.next() }
 
+	fn next_newline(&mut self) -> Result<(), Exception> {
+		while !self.ctoken.typer.is(TokenType::NEWLINE) && !self.ctoken.typer.is(TokenType::EOF) {
+			self.next_token(false)?; // all except NEWLINE and EOF
+		}
+
+		Ok(())
+	}
+
 	fn next_while_newline(&mut self) -> Result<(), Exception> {
 		while self.ctoken.typer.is(TokenType::NEWLINE) {
 			self.next_token(false)?; // NEWLINE

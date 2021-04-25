@@ -44,7 +44,7 @@ impl Parser {
 			TokenType::LeftBrace => Expression::Literal(self.parse_hashmap()?),
 			_ => {
 				let mut exception: Exception =
-					Exception::not_runtime(Except::invalid_syntax("Unexpected token"));
+					Exception::not_runtime(Except::invalid_syntax("invalid syntax"));
 				exception
 					.push(ExceptionPoint::new(&self.module, self.ctoken.position.start.copy()));
 				return Err(exception);

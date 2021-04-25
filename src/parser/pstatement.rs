@@ -7,6 +7,10 @@ impl Parser {
 		self.next_while_newline()?;
 
 		let mut statement: Statement = match self.ctoken.typer.clone() {
+			TokenType::CommentLine => {
+				self.next_newline()?;
+				return Ok(Statement::Expression(Expression::Literal(Literal::Null)));
+			},
 			TokenType::LET => self.parse_let()?,
 			TokenType::FN if self.is_fn_statement_anonymous()? == "statement" =>
 				self.parse_function()?,

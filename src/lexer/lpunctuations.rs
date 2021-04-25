@@ -43,6 +43,10 @@ impl Lexer {
 			c if c == '+' => TokenType::PLUS,
 			c if c == '-' => TokenType::MINUS,
 			c if c == '*' => TokenType::ASTERISK,
+			c if c == '/' && self.nchar == '/' => {
+				self.next_char();
+				TokenType::CommentLine
+			},
 			c if c == '/' => TokenType::SLASH,
 			c if c == '=' && self.nchar == '=' => {
 				self.next_char();
