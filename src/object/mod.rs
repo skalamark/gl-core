@@ -113,7 +113,7 @@ impl std::fmt::Display for Object {
 				write!(f, "<function {}>", name_fn)
 			},
 			Object::ModuleDynLibrary(module) => {
-				write!(f, "<module '{}' from '{}'>", module.get_name(), module.get_path())
+				write!(f, "<dynmodule '{}' from '{}'>", module.get_name(), module.get_path())
 			},
 			Object::ModuleRust(name, _) => {
 				write!(f, "<module '{}'>", name)

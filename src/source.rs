@@ -21,6 +21,7 @@ impl Source {
 
 	pub fn from_filename<T: Into<String>>(filename: T) -> io::Result<Self> {
 		let file: File = File::open(filename.into())?;
+
 		Ok(Self {
 			chars_cache: Vec::new(),
 			data: SourceType::File(BufReader::new(file)),
@@ -38,6 +39,7 @@ impl Source {
 			SourceType::String(string) =>
 				if !self.eof && string.len() > 0 {
 					let mut limite_read_chars: usize = 32;
+
 					if string.len() < limite_read_chars {
 						limite_read_chars = string.len();
 					}

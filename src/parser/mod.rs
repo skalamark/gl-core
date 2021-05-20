@@ -45,6 +45,7 @@ impl Parser {
 
 	fn next_token(&mut self, while_newline: bool) -> Result<(), Exception> {
 		self.ctoken = self.ntoken.copy();
+
 		if self.tokens_cache.len() > 0 {
 			self.ntoken = self.tokens_cache.remove(0);
 		} else {
@@ -78,6 +79,7 @@ impl Parser {
 
 	pub fn next(&mut self) -> Result<Option<Statement>, Exception> {
 		self.next_while_newline()?;
+
 		if self.ctoken.typer.is(TokenType::EOF) {
 			return Ok(None);
 		}

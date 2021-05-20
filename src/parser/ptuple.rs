@@ -8,8 +8,10 @@ impl Parser {
 	) -> Result<Expression, Exception> {
 		self.next_token(true)?; // LeftParen or COMMA
 		let mut values: Vec<Expression> = Vec::new();
+		let mut exists_first_value: bool = false; // Is LeftParen
 
 		if let Some(first) = first_value {
+			exists_first_value = true; // Is COMMA
 			values.push(first);
 		}
 
@@ -18,8 +20,9 @@ impl Parser {
 			self.next_while_newline()?;
 
 			match &self.ctoken.typer {
-				TokenType::COMMA => self.next_token(true)?,
+				TokenType::COMMA => self.next_token(true)?, // COMMA
 				TokenType::RightParen => {},
+				_ if exists_first_value => break,
 				_ => {
 					let mut exception: Exception = Exception::not_runtime(Except::invalid_syntax(
 						format!("expected ',' or ')'"),

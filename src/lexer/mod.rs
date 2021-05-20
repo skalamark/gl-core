@@ -56,6 +56,7 @@ impl Lexer {
 		if token.typer.is(TokenType::EOF) {
 			self.eof = true
 		}
+
 		self.tokens_cache.push(token);
 	}
 

@@ -12,7 +12,7 @@ impl Parser {
 			self.next_while_newline()?;
 
 			match &self.ctoken.typer {
-				TokenType::COMMA => self.next_token(true)?,
+				TokenType::COMMA => self.next_token(true)?, // COMMA
 				TokenType::RightBracket => {},
 				_ => {
 					let mut exception: Exception =

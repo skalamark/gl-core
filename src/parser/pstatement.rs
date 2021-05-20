@@ -39,6 +39,7 @@ impl Parser {
 		if check_final {
 			statement = self.parse_statement_final(statement)?;
 		}
+
 		Ok(statement)
 	}
 
