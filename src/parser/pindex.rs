@@ -6,6 +6,7 @@ impl Parser {
 	pub fn parse_index(&mut self, left: Expression) -> Result<Expression, Exception> {
 		self.next_token(true)?; // LeftBracket
 		let index: Expression = self.parse_expression(Precedence::Lowest)?;
+		self.next_while_newline()?;
 
 		if !self.ctoken.typer.is(TokenType::RightBracket) {
 			let mut exception: Exception =

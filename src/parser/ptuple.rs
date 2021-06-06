@@ -19,10 +19,13 @@ impl Parser {
 			|| (!exists_first_value && !self.ctoken.typer.is(TokenType::RightParen))
 		{
 			values.push(self.parse_expression(Precedence::Comma)?);
-			self.next_while_newline()?;
+			if !exists_first_value {
+				self.next_while_newline()?;
+			}
 
 			match &self.ctoken.typer {
-				TokenType::COMMA => self.next_token(true)?, // COMMA
+				TokenType::COMMA if exists_first_value => self.next_token(false)?, // COMMA
+				TokenType::COMMA if !exists_first_value => self.next_token(true)?, // COMMA
 				TokenType::RightParen if !exists_first_value => {},
 				_ if !exists_first_value => {
 					let mut exception: Exception =
