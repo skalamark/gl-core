@@ -197,7 +197,7 @@ fn run_hashmap() {
 
 #[test]
 fn run_operators() {
-	let source: Source = Source::from_string("+-*/==!==!><>=<=");
+	let source: Source = Source::from_string("+-*==/!==!><>=<=");
 	let module: &str = "tests/lexer";
 	let mut lexer: Lexer = Lexer::new(source, module);
 
@@ -205,8 +205,8 @@ fn run_operators() {
 		(PLUS, (0, 0), (1, 0)),
 		(MINUS, (1, 0), (2, 0)),
 		(ASTERISK, (2, 0), (3, 0)),
-		(SLASH, (3, 0), (4, 0)),
-		(EQUAL, (4, 0), (6, 0)),
+		(EQUAL, (3, 0), (5, 0)),
+		(SLASH, (5, 0), (6, 0)),
 		(NotEqual, (6, 0), (8, 0)),
 		(ASSIGN, (8, 0), (9, 0)),
 		(BANG, (9, 0), (10, 0)),
