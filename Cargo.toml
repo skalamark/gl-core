@@ -13,6 +13,11 @@ description = "Core GLanguage"
 [dependencies]
 downcast-rs = "1.2.0"
 lazy_static = "1.4.0"
-libloading = "0.7.0"
+libloading = "0.7.1"
 num = "0.4.0"
 regex = "1.4.3"
+
+[features]
+defaults = []
+std = []
+fmt = []
