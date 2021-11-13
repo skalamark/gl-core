@@ -14,6 +14,7 @@ mod pinfix;
 mod plet;
 mod pnumber;
 mod pprefix;
+mod pproperty;
 mod pstatement;
 mod ptuple;
 mod pvec;

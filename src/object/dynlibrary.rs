@@ -8,12 +8,12 @@ pub struct ModuleDynLibrary {
 	name: String,
 	path: String,
 	dynlibrary: Rc<RefCell<Library>>,
-	env: Rc<RefCell<Env>>,
+	env: Rc<RefCell<Scope>>,
 }
 
 impl ModuleDynLibrary {
 	pub fn new<T: Into<String>>(
-		name: T, path: T, dynlibrary: Rc<RefCell<Library>>, env: Rc<RefCell<Env>>,
+		name: T, path: T, dynlibrary: Rc<RefCell<Library>>, env: Rc<RefCell<Scope>>,
 	) -> Self {
 		Self { name: name.into(), path: path.into(), dynlibrary, env }
 	}
@@ -31,11 +31,11 @@ impl ModuleDynLibrary {
 			None => unsafe {
 				self.env.borrow_mut().set(
 					&name,
-					Object::FnRust(
+					Object::from(GFunctionNative::new(
 						Some(name.clone()),
 						-1,
-						*self.dynlibrary.borrow().get::<FnRust>(name.as_bytes())?,
-					),
+						*self.dynlibrary.borrow().get::<FnNative>(name.as_bytes())?,
+					)),
 				);
 				return self.get_attr(&name);
 			},

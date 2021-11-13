@@ -7,6 +7,12 @@ impl Parser {
 		self.next_while_newline()?;
 
 		let mut statement: Statement = match self.ctoken.typer.clone() {
+			TokenType::IDENTIFIER(identifier) if self.ntoken.typer.is(TokenType::ASSIGN) => {
+				self.next_token(true)?; // IDENTIFIER
+				self.next_token(true)?; // ASSIGN
+				let value: Expression = self.parse_expression(Precedence::Lowest)?;
+				Statement::LetAlter(identifier, value)
+			},
 			TokenType::CommentLine => {
 				self.next_newline()?;
 				return Ok(Statement::Expression(Expression::Literal(Literal::Null)));

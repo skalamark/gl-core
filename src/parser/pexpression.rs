@@ -23,7 +23,7 @@ impl Parser {
 				| TokenType::GreaterThanEqual => self.parse_infix(left)?,
 				TokenType::LeftParen => self.parse_call(left)?,
 				TokenType::LeftBracket => self.parse_index(left)?,
-				TokenType::DCOLON => unimplemented!(),
+				TokenType::DCOLON => self.parse_property(left)?,
 				_ => left,
 			};
 		}
